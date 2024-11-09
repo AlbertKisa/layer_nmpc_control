@@ -9,10 +9,10 @@ def PointToSegmentDistance(p, seg_begin, seg_end):
     seg_len_squared = np.dot(be, be)
     if seg_len_squared == 0:
         return np.linalg.norm(bp)
-    t = np.dot(be, bp)/seg_len_squared
+    t = np.dot(be, bp) / seg_len_squared
 
     t = max(0.0, min(t, 1.0))
-    D = seg_begin + t*be
+    D = seg_begin + t * be
     pd = D - p
 
     return np.linalg.norm(pd)

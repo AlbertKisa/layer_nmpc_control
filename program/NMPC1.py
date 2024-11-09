@@ -6,7 +6,7 @@ from mpl_toolkits.mplot3d import Axes3D
 # simulation time parameter
 SIM_TIME = 32.
 TIMESTEP = 1.
-NUMBER_OF_TIMESTEPS = int(SIM_TIME/TIMESTEP)
+NUMBER_OF_TIMESTEPS = int(SIM_TIME / TIMESTEP)
 
 # collision cost
 Qc = 5.0
@@ -21,8 +21,8 @@ VMAX = 4
 # nmpc parameter
 HORIZON_LENGTH = int(4)
 NMPC_TIMESTEP = 0.3
-upper_bound = [(1/np.sqrt(2)) * VMAX] * HORIZON_LENGTH * 3
-lower_bound = [-(1/np.sqrt(2)) * VMAX] * HORIZON_LENGTH * 3
+upper_bound = [(1 / np.sqrt(2)) * VMAX] * HORIZON_LENGTH * 3
+lower_bound = [-(1 / np.sqrt(2)) * VMAX] * HORIZON_LENGTH * 3
 
 
 def CollisionCost(p_robot, p_obs):
@@ -30,7 +30,7 @@ def CollisionCost(p_robot, p_obs):
     Cost of collision between two robot_state
     """
     d = np.linalg.norm(p_robot - p_obs)
-    cost = Qc / (1 + np.exp(kappa * (d - 2*ROBOT_RADIUS)))
+    cost = Qc / (1 + np.exp(kappa * (d - 2 * ROBOT_RADIUS)))
     return cost
 
 
@@ -39,7 +39,7 @@ def TatalCollisionCost(path_robot, obstacles):
     for i in range(HORIZON_LENGTH):
         for j in range(len(obstacles)):
             p_obs = obstacles[j]
-            p_rob = path_robot[3*i: 3*i+3]
+            p_rob = path_robot[3 * i:3 * i + 3]
             total_cost += CollisionCost(p_rob, p_obs)
     return total_cost
 
@@ -75,10 +75,10 @@ def ComputeVelocity(robot_state, obstacles, xref):
     Computes control velocity of the copter
     """
     # u0 = np.array([0] * 2 * HORIZON_LENGTH)
-    u0 = np.random.rand(3*HORIZON_LENGTH)
+    u0 = np.random.rand(3 * HORIZON_LENGTH)
 
-    def CostFn(u): return TotalCost(
-        u, robot_state, obstacles, xref)
+    def CostFn(u):
+        return TotalCost(u, robot_state, obstacles, xref)
 
     bounds = Bounds(lower_bound, upper_bound)
 
@@ -95,7 +95,8 @@ def ComputeRefPath(start, goal, number_of_steps, timestep):
     else:
         dir_vec = dir_vec / norm
         new_goal = start + dir_vec * VMAX * timestep * number_of_steps
-    return np.linspace(start, new_goal, number_of_steps).reshape((3*number_of_steps))
+    return np.linspace(start, new_goal, number_of_steps).reshape(
+        (3 * number_of_steps))
 
 
 def NMPCLeader(start_pose, goal_pose, obstacles):
@@ -104,8 +105,10 @@ def NMPCLeader(start_pose, goal_pose, obstacles):
     robot_state_history = np.empty((3, NUMBER_OF_TIMESTEPS))
 
     for i in range(NUMBER_OF_TIMESTEPS):
-        ref_path = ComputeRefPath(robot_state, p_desired, HORIZON_LENGTH, NMPC_TIMESTEP)
-        vel, velocity_profile = ComputeVelocity(robot_state, obstacles, ref_path)
+        ref_path = ComputeRefPath(robot_state, p_desired, HORIZON_LENGTH,
+                                  NMPC_TIMESTEP)
+        vel, velocity_profile = ComputeVelocity(robot_state, obstacles,
+                                                ref_path)
         print("cur_state:\n", robot_state)
         robot_state = UpdateState(robot_state, vel, TIMESTEP)
         print("vel:\n", vel)
@@ -123,16 +126,22 @@ if __name__ == "__main__":
 
     # 创建球的参数
     u = np.linspace(0, 2 * np.pi, 100)  # 从 0 到 2π
-    v = np.linspace(0, np.pi, 100)      # 从 0 到 π
+    v = np.linspace(0, np.pi, 100)  # 从 0 到 π
 
     # 使用参数方程计算球面上的点
-    x0_a = obstacles[0, 0] + ROBOT_RADIUS * np.outer(np.cos(u), np.sin(v))  # x = x0 + r * cos(θ) * sin(φ)
-    y0_a = obstacles[0, 1] + ROBOT_RADIUS * np.outer(np.sin(u), np.sin(v))  # y = y0 + r * sin(θ) * sin(φ)
-    z0_a = obstacles[0, 2] + ROBOT_RADIUS * np.outer(np.ones(np.size(u)), np.cos(v))  # z = z0 + r * cos(φ)
+    x0_a = obstacles[0, 0] + ROBOT_RADIUS * np.outer(
+        np.cos(u), np.sin(v))  # x = x0 + r * cos(θ) * sin(φ)
+    y0_a = obstacles[0, 1] + ROBOT_RADIUS * np.outer(
+        np.sin(u), np.sin(v))  # y = y0 + r * sin(θ) * sin(φ)
+    z0_a = obstacles[0, 2] + ROBOT_RADIUS * np.outer(np.ones(
+        np.size(u)), np.cos(v))  # z = z0 + r * cos(φ)
 
-    x1_a = obstacles[1, 0] + ROBOT_RADIUS * np.outer(np.cos(u), np.sin(v))  # x = x0 + r * cos(θ) * sin(φ)
-    y1_a = obstacles[1, 1] + ROBOT_RADIUS * np.outer(np.sin(u), np.sin(v))  # y = y0 + r * sin(θ) * sin(φ)
-    z1_a = obstacles[1, 2] + ROBOT_RADIUS * np.outer(np.ones(np.size(u)), np.cos(v))  # z = z0 + r * cos(φ)
+    x1_a = obstacles[1, 0] + ROBOT_RADIUS * np.outer(
+        np.cos(u), np.sin(v))  # x = x0 + r * cos(θ) * sin(φ)
+    y1_a = obstacles[1, 1] + ROBOT_RADIUS * np.outer(
+        np.sin(u), np.sin(v))  # y = y0 + r * sin(θ) * sin(φ)
+    z1_a = obstacles[1, 2] + ROBOT_RADIUS * np.outer(np.ones(
+        np.size(u)), np.cos(v))  # z = z0 + r * cos(φ)
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
