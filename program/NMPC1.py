@@ -5,7 +5,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 # simulation time parameter
 SIM_TIME = 32.
-TIMESTEP = 1.
+TIMESTEP = 0.5
 NUMBER_OF_TIMESTEPS = int(SIM_TIME / TIMESTEP)
 
 # collision cost
@@ -102,18 +102,21 @@ def ComputeRefPath(start, goal, number_of_steps, timestep):
 def NMPCLeader(start_pose, goal_pose, obstacles):
     robot_state = start_pose
     p_desired = goal_pose
-    robot_state_history = np.empty((3, NUMBER_OF_TIMESTEPS))
+    robot_state_history = np.empty((3, 0))
 
     for i in range(NUMBER_OF_TIMESTEPS):
         ref_path = ComputeRefPath(robot_state, p_desired, HORIZON_LENGTH,
                                   NMPC_TIMESTEP)
         vel, velocity_profile = ComputeVelocity(robot_state, obstacles,
                                                 ref_path)
-        print("cur_state:\n", robot_state)
         robot_state = UpdateState(robot_state, vel, TIMESTEP)
-        print("vel:\n", vel)
-        print("new state:\n", robot_state)
-        robot_state_history[:3, i] = robot_state
+
+        robot_state_history = np.hstack(
+            (robot_state_history, robot_state.reshape(-1, 1)))
+        dis_to_goal = np.linalg.norm(goal_pose - robot_state)
+        if dis_to_goal < 0.5:
+            print("final distance to goal:", dis_to_goal)
+            break
 
     return robot_state_history
 

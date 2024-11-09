@@ -1,7 +1,6 @@
 import numpy as np
 import random
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.animation import FuncAnimation
 from scipy.interpolate import interp1d
 import time
@@ -9,7 +8,7 @@ import pandas as pd
 
 # 假設MPC控制器的函數已經定義（mpc1_leader, mpc2_follower, mpc3_distance）
 from NMPC1 import NMPCLeader
-from program.NMPC2 import mpc2_follower
+from NMPC2 import mpc2_follower
 
 # 設定Leader初始位置和目標位置
 P_l_start = np.array([0, 0, 0])
@@ -42,7 +41,7 @@ P_l_traj = NMPCLeader(P_l_start, P_l_goal, obstacles_new)
 time.sleep(0.5)
 
 # 計算Follower1和Follower2的軌跡
-num_col = 32
+num_col = P_l_traj.shape[1]
 P_f1_traj, _ = mpc2_follower(P_f1_start, P_l_traj, d1, num_col)
 P_f2_traj, _ = mpc2_follower(P_f2_start, P_l_traj, d2, num_col)
 # 保持Follower1和Follower2的距離
