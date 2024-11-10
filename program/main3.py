@@ -21,7 +21,7 @@ P_l_goal = np.array([15, 15, 15])
 # 隨機設置Follower的初始位置
 a = random.uniform(-5, 0)
 b = random.uniform(-5, 0)
-c = random.uniform(-5, 0)
+c = random.uniform(0, 5)
 d = random.uniform(-5, 0)
 P_f1_start = np.array([a, b, 0])
 P_f2_start = np.array([c, d, 0])
@@ -31,11 +31,11 @@ d1 = np.array([-1.0, -1.0, 0])
 d2 = np.array([1.0, -1.0, 0])
 
 obs1_x = random.uniform(4, 7)
-obs1_y = random.uniform(4, 7)
-obs1_z = random.uniform(4, 7)
+obs1_y = obs1_x
+obs1_z = obs1_x
 obs2_x = random.uniform(9, 12)
-obs2_y = random.uniform(9, 12)
-obs2_z = random.uniform(9, 12)
+obs2_y = obs2_x
+obs2_z = obs2_x
 # 设置球形障碍物的中心和半径, 下面这是两个障碍物的参数，前三位是x,y,z,第四位是r
 obstacles = [[obs1_x, obs1_y, obs1_z, OBS_SAFE],
              [obs2_x, obs2_y, obs2_z, OBS_SAFE]]
@@ -129,8 +129,8 @@ ax.plot_surface(x0_a, y0_a, z0_a, color='b', alpha=0.6)  # 使用半透明的蓝
 ax.plot_surface(x1_a, y1_a, z1_a, color='b', alpha=0.6)  # 使用半透明的蓝色
 
 # 初始化三條線條
-leader_line, = ax.plot([], [], [], label="Leader Trajectory", color='blue')
-f1_line, = ax.plot([], [], [], label="Follower1 Trajectory", color='yellow')
+leader_line, = ax.plot([], [], [], label="Leader Trajectory", color='red')
+f1_line, = ax.plot([], [], [], label="Follower1 Trajectory", color='blue')
 f2_line, = ax.plot([], [], [], label="Follower2 Trajectory", color='green')
 
 # 初始和目標點，以紅色標記並用黑色標注座標
@@ -162,7 +162,7 @@ ax.text(P_l_goal[0],
 ax.scatter(P_f1_start[0],
            P_f1_start[1],
            P_f1_start[2],
-           color='yellow',
+           color='blue',
            label='Follower1 Start',
            s=100)
 ax.text(P_f1_start[0],
@@ -217,7 +217,7 @@ def update_smooth(frame):
         # 连接leader和follower1的褐色虚线
         if not hasattr(update_smooth, 'line_f1'):
             update_smooth.line_f1, = ax.plot([], [], [],
-                                             color='brown',
+                                             color='gray',
                                              linestyle='--')
         update_smooth.line_f1.set_data([
             P_l_traj_interpolated[0, frame], P_f1_traj_interpolated[0, frame]
@@ -229,7 +229,7 @@ def update_smooth(frame):
         # 连接leader和follower2的褐色虚线
         if not hasattr(update_smooth, 'line_f2'):
             update_smooth.line_f2, = ax.plot([], [], [],
-                                             color='brown',
+                                             color='gray',
                                              linestyle='--')
         update_smooth.line_f2.set_data([
             P_l_traj_interpolated[0, frame], P_f2_traj_interpolated[0, frame]
@@ -243,7 +243,7 @@ def update_smooth(frame):
         ax.scatter(P_f1_end[0],
                    P_f1_end[1],
                    P_f1_end[2],
-                   color='yellow',
+                   color='blue',
                    label='Follower1 End',
                    s=100)
         ax.text(P_f1_end[0],
