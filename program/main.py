@@ -8,7 +8,11 @@ import pandas as pd
 
 # 假設MPC控制器的函數已經定義（mpc1_leader, mpc2_follower, mpc3_distance）
 from NMPC1 import NMPCLeader
-from NMPC2 import mpc2_follower
+from NMPC2 import NMPCFollower
+
+# safe parameter
+NEIGHBOUR_SAFE = 1.
+OBS_SAFE = 0.5
 
 # 設定Leader初始位置和目標位置
 P_l_start = np.array([0, 0, 0])
@@ -23,9 +27,8 @@ P_f1_start = np.array([a, b, 0])
 P_f2_start = np.array([c, d, 0])
 
 # 定義向量以形成編隊
-d1 = np.array([0.5, 0.5, 0])
-d2 = np.array([-0.5, 0.5, 0])
-d3 = np.array([6, 0, 0])
+d1 = np.array([-0.5, -0.5, 0])
+d2 = np.array([0.5, -0.5, 0])
 
 # 设置球形障碍物的中心和半径, 下面这是两个障碍物的参数，前三位是x,y,z,第四位是r
 obstacles = [[4.0, 4.0, 4.0, 0.5], [6.0, 6.0, 6.0, 0.5]]
@@ -41,11 +44,11 @@ P_l_traj = NMPCLeader(P_l_start, P_l_goal, obstacles_new)
 time.sleep(0.5)
 
 # 計算Follower1和Follower2的軌跡
-num_col = P_l_traj.shape[1]
-P_f1_traj, _ = mpc2_follower(P_f1_start, P_l_traj, d1, num_col)
-P_f2_traj, _ = mpc2_follower(P_f2_start, P_l_traj, d2, num_col)
-# 保持Follower1和Follower2的距離
-# P_f12_traj = mpc3_distance(P_f1_start, P_f2_start, d3)
+P_f1_traj = NMPCFollower(P_f1_start, P_l_goal + d1, P_l_traj, d1,
+                         np.empty((3, 0)), obstacles_new, NEIGHBOUR_SAFE,
+                         OBS_SAFE)
+P_f2_traj = NMPCFollower(P_f2_start, P_l_goal + d2, P_l_traj, d2, P_f1_traj,
+                         obstacles_new, NEIGHBOUR_SAFE, OBS_SAFE)
 
 # 計算Follower的終點，定義為全局變數
 P_f1_end = P_f1_traj[:, -1]  # Follower1 的終點

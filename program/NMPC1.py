@@ -1,7 +1,6 @@
 import numpy as np
 from scipy.optimize import minimize, Bounds
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 
 # simulation time parameter
 SIM_TIME = 32.
@@ -74,7 +73,6 @@ def ComputeVelocity(robot_state, obstacles, xref):
     """
     Computes control velocity of the copter
     """
-    # u0 = np.array([0] * 2 * HORIZON_LENGTH)
     u0 = np.random.rand(3 * HORIZON_LENGTH)
 
     def CostFn(u):

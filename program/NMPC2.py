@@ -1,36 +1,174 @@
-import cvxpy as cp
 import numpy as np
+from scipy.optimize import minimize, Bounds
+import math
 
-A = np.block([[np.zeros((3, 3)), np.eye(3)],
-              [np.zeros((3, 3)), np.zeros((3, 3))]])
+# simulation time parameter
+SIM_TIME = 32.
+TIMESTEP = 0.5
+NUMBER_OF_TIMESTEPS = int(SIM_TIME / TIMESTEP)
 
-B = np.block([[np.zeros((3, 3))], [np.eye(3)]])
+# collision cost
+Qc = 5.
+kappa = 4.
 
-C = np.eye(6)
+# tracking reference line cost
+alpha = 5.
+
+# ego motion parameter
+VMAX = 4
+
+# nmpc parameter
+HORIZON_LENGTH = int(4)
+NMPC_TIMESTEP = 0.3
+upper_bound = [(1 / np.sqrt(2)) * VMAX] * HORIZON_LENGTH * 3
+lower_bound = [-(1 / np.sqrt(2)) * VMAX] * HORIZON_LENGTH * 3
 
 
-def mpc2_follower(P_f_start, P_l, d, Np=80, Nc=10):
-    # 定義狀態
-    u = cp.Variable((3, Np))  # 控制输入 (速度)
-    P_f = cp.Variable((3, Np + 1))  # Follower 位置
+def CollisionCost(p_robot, p_obs, safe_dis):
+    """
+    Cost of collision between two robot_state
+    """
+    d = np.linalg.norm(p_robot - p_obs)
+    cost = Qc / (1 + np.exp(kappa * (d - safe_dis)))
+    return cost
 
-    # 最小化 Follower 跟 Leader 的距離 用d1 d2向量
-    Q = np.eye(3)
-    R = 0.1 * np.eye(3)
 
-    # 目標函數
-    cost = 0
-    for k in range(Np):
-        cost += cp.quad_form(P_f[:, k] -
-                             (P_l[:, k] - d), Q) + cp.quad_form(u[:, k], R)
+def TrackingCost(p_robot, p_stitch):
+    """
+    Cost of track reference_line
+    """
+    d = np.linalg.norm(p_robot - p_stitch)
+    cost = alpha * d
+    return cost
 
-    # 約束條件
-    constraints = [P_f[:, 0] == P_f_start]
-    for k in range(Np):
-        constraints += [P_f[:, k + 1] == P_f[:, k] + u[:, k]]
 
-    # 求解最佳化
-    prob = cp.Problem(cp.Minimize(cost), constraints)
-    prob.solve()
+def TatalCollisionCost(path_robot, dynamic_obstacles, static_obstacles,
+                       dynamic_safe_dis, static_safe_dis):
+    total_cost = 0.0
+    for i in range(HORIZON_LENGTH):
+        for j in range(len(static_obstacles)):
+            p_static_obs = static_obstacles[j]
+            p_rob = path_robot[3 * i:3 * i + 3]
+            total_cost += CollisionCost(p_rob, p_static_obs, static_safe_dis)
+        for k in range(len(dynamic_obstacles)):
+            p_dynamic_obs = dynamic_obstacles[3 * i:3 * i + 3]
+            p_rob = path_robot[3 * i:3 * i + 3]
+            total_cost += CollisionCost(p_rob, p_dynamic_obs, dynamic_safe_dis)
+    return total_cost
 
-    return P_f.value, u.value  # 返回位置和控制输入
+
+def UpdateState(x0, u, timestep):
+    """
+    Computes the states of the system after applying a sequence of control signals u on
+    initial state x0
+    """
+    N = int(len(u) / 3)
+    lower_triangular_ones_matrix = np.tril(np.ones((N, N)))
+    kron = np.kron(lower_triangular_ones_matrix, np.eye(3))
+
+    new_state = np.vstack([np.eye(3)] * int(N)) @ x0 + kron @ u * timestep
+
+    return new_state
+
+
+def TotalCost(u, robot_state, dynamic_obs, static_obs, dynamic_obs_safe_dis,
+              static_obs_safe_dis, xref):
+    p_robot = UpdateState(robot_state, u, NMPC_TIMESTEP)
+    c1 = TrackingCost(p_robot, xref)
+    c2 = TatalCollisionCost(p_robot, dynamic_obs, static_obs,
+                            dynamic_obs_safe_dis, static_obs_safe_dis)
+    total = c1 + c2
+    return total
+
+
+def ComputeVelocity(robot_state, neighbor_traj, static_obs, neighbor_safe_dis,
+                    avoid_static_obs_dis, xref):
+    """
+    Computes control velocity of the copter
+    """
+    u0 = np.random.rand(3 * HORIZON_LENGTH)
+
+    def CostFn(u):
+        return TotalCost(u, robot_state, neighbor_traj, static_obs,
+                         neighbor_safe_dis, avoid_static_obs_dis, xref)
+
+    bounds = Bounds(lower_bound, upper_bound)
+
+    res = minimize(CostFn, u0, method='SLSQP', bounds=bounds)
+    velocity = res.x[:3]
+    return velocity, res.x
+
+
+def ComputeRefPath(start, final_goal, ref_trajectory, time_stamp,
+                   number_of_steps, timestep):
+    virtual_target = final_goal
+    ref_total_time = ref_trajectory.shape[1]
+
+    if time_stamp < ref_total_time:
+        virtual_target = ref_trajectory[:, time_stamp].T
+
+    dir_vec = (virtual_target - start)
+    norm = np.linalg.norm(dir_vec)
+    if norm < 0.1:
+        new_goal = start
+    else:
+        dir_vec = dir_vec / norm
+        new_goal = start + dir_vec * VMAX * timestep * number_of_steps
+    return np.linspace(start, new_goal, number_of_steps).reshape(
+        (3 * number_of_steps))
+
+
+def GetNeighbourTraj(neighbour_trajectory, time_stamp, number_of_steps,
+                     timestep):
+    if neighbour_trajectory.size == 0:
+        return []
+    pre_neighbour_traj = np.empty((3, 0))
+    for i in range(number_of_steps):
+        next_sim_time_ceil = time_stamp + math.ceil(
+            (i + 1) * timestep / TIMESTEP)
+        next_sim_time_floor = time_stamp + math.floor(
+            (i + 1) * time_stamp / TIMESTEP)
+        if next_sim_time_floor >= neighbour_trajectory.shape[1] - 1:
+            pre_neighbour_traj = np.hstack(
+                (pre_neighbour_traj, neighbour_trajectory[:,
+                                                          -1].reshape(-1, 1)))
+        else:
+            ratio = ((i + 1) * timestep -
+                     (next_sim_time_floor - timestep) * TIMESTEP) / TIMESTEP
+            tmp_pose = neighbour_trajectory[:, next_sim_time_floor] + (
+                neighbour_trajectory[:, next_sim_time_ceil] -
+                neighbour_trajectory[:, next_sim_time_floor]) * ratio
+            pre_neighbour_traj = np.hstack(
+                (pre_neighbour_traj, tmp_pose.reshape(-1, 1)))
+
+    return pre_neighbour_traj.reshape(-1, order="F")
+
+
+def NMPCFollower(start_pose, goal_pose, leader_trajectory, formation_d,
+                 neighbour_trajectory, obstacles, neighbour_safe_dis,
+                 avoid_obs_safe_dis):
+    robot_state = start_pose
+    robot_state_history = np.empty((3, 0))
+
+    ref_trajectory = leader_trajectory + formation_d.reshape(-1, 1)
+
+    for i in range(NUMBER_OF_TIMESTEPS):
+        ref_path = ComputeRefPath(robot_state, goal_pose, ref_trajectory, i,
+                                  HORIZON_LENGTH, NMPC_TIMESTEP)
+
+        neighbour_traj = GetNeighbourTraj(neighbour_trajectory, i,
+                                          HORIZON_LENGTH, NMPC_TIMESTEP)
+
+        vel, velocity_profile = ComputeVelocity(robot_state, neighbour_traj,
+                                                obstacles, neighbour_safe_dis,
+                                                avoid_obs_safe_dis, ref_path)
+        robot_state = UpdateState(robot_state, vel, TIMESTEP)
+
+        robot_state_history = np.hstack(
+            (robot_state_history, robot_state.reshape(-1, 1)))
+        dis_to_goal = np.linalg.norm(goal_pose - robot_state)
+        if dis_to_goal < 0.5:
+            print("final distance to goal:", dis_to_goal)
+            break
+
+    return robot_state_history
