@@ -3,7 +3,7 @@ from scipy.optimize import minimize, Bounds
 import matplotlib.pyplot as plt
 
 # simulation time parameter
-SIM_TIME = 32.
+SIM_TIME = 62.
 TIMESTEP = 0.5
 NUMBER_OF_TIMESTEPS = int(SIM_TIME / TIMESTEP)
 
@@ -112,7 +112,7 @@ def NMPCLeader(start_pose, goal_pose, obstacles):
         robot_state_history = np.hstack(
             (robot_state_history, robot_state.reshape(-1, 1)))
         dis_to_goal = np.linalg.norm(goal_pose - robot_state)
-        if dis_to_goal < 0.5:
+        if dis_to_goal < 0.4:
             print("final distance to goal:", dis_to_goal)
             break
 

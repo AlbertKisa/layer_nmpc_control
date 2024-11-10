@@ -3,7 +3,7 @@ from scipy.optimize import minimize, Bounds
 import math
 
 # simulation time parameter
-SIM_TIME = 32.
+SIM_TIME = 64.
 TIMESTEP = 0.5
 NUMBER_OF_TIMESTEPS = int(SIM_TIME / TIMESTEP)
 
@@ -104,18 +104,17 @@ def ComputeRefPath(start, final_goal, ref_trajectory, time_stamp,
     virtual_target = final_goal
     ref_total_time = ref_trajectory.shape[1]
 
+    final_ref_path = np.linspace(virtual_target, virtual_target,
+                                 number_of_steps).reshape(
+                                     (3 * number_of_steps))
+
     if time_stamp < ref_total_time:
         virtual_target = ref_trajectory[:, time_stamp].T
+        final_ref_path = np.linspace(start, virtual_target,
+                                     number_of_steps).reshape(
+                                         (3 * number_of_steps))
 
-    dir_vec = (virtual_target - start)
-    norm = np.linalg.norm(dir_vec)
-    if norm < 0.1:
-        new_goal = start
-    else:
-        dir_vec = dir_vec / norm
-        new_goal = start + dir_vec * VMAX * timestep * number_of_steps
-    return np.linspace(start, new_goal, number_of_steps).reshape(
-        (3 * number_of_steps))
+    return final_ref_path
 
 
 def GetNeighbourTraj(neighbour_trajectory, time_stamp, number_of_steps,
@@ -152,7 +151,10 @@ def NMPCFollower(start_pose, goal_pose, leader_trajectory, formation_d,
 
     ref_trajectory = leader_trajectory + formation_d.reshape(-1, 1)
 
+    final_step = 0
+
     for i in range(NUMBER_OF_TIMESTEPS):
+        final_step = i
         ref_path = ComputeRefPath(robot_state, goal_pose, ref_trajectory, i,
                                   HORIZON_LENGTH, NMPC_TIMESTEP)
 
@@ -167,8 +169,9 @@ def NMPCFollower(start_pose, goal_pose, leader_trajectory, formation_d,
         robot_state_history = np.hstack(
             (robot_state_history, robot_state.reshape(-1, 1)))
         dis_to_goal = np.linalg.norm(goal_pose - robot_state)
-        if dis_to_goal < 0.5:
+        if dis_to_goal < 0.1:
             print("final distance to goal:", dis_to_goal)
             break
+    print(f"final_step:{final_step}")
 
     return robot_state_history

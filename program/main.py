@@ -12,27 +12,34 @@ from NMPC2 import NMPCFollower
 
 # safe parameter
 NEIGHBOUR_SAFE = 1.
-OBS_SAFE = 0.5
+OBS_SAFE = 1.0
 
 # 設定Leader初始位置和目標位置
 P_l_start = np.array([0, 0, 0])
-P_l_goal = np.array([10, 10, 10])
+P_l_goal = np.array([15, 15, 15])
 
 # 隨機設置Follower的初始位置
-a = random.uniform(-5, 5)
-b = random.uniform(-5, 5)
-c = random.uniform(-5, 5)
-d = random.uniform(-5, 5)
+a = random.uniform(-5, 0)
+b = random.uniform(-5, 0)
+c = random.uniform(-5, 0)
+d = random.uniform(-5, 0)
 P_f1_start = np.array([a, b, 0])
 P_f2_start = np.array([c, d, 0])
 
 # 定義向量以形成編隊
-d1 = np.array([-0.5, -0.5, 0])
-d2 = np.array([0.5, -0.5, 0])
+d1 = np.array([-1.0, -1.0, 0])
+d2 = np.array([1.0, -1.0, 0])
 
+obs1_x = random.uniform(4, 7)
+obs1_y = random.uniform(4, 7)
+obs1_z = random.uniform(4, 7)
+obs2_x = random.uniform(9, 12)
+obs2_y = random.uniform(9, 12)
+obs2_z = random.uniform(9, 12)
 # 设置球形障碍物的中心和半径, 下面这是两个障碍物的参数，前三位是x,y,z,第四位是r
-obstacles = [[4.0, 4.0, 4.0, 0.5], [6.0, 6.0, 6.0, 0.5]]
-obs = [[4.0, 4.0, 4.0], [6.0, 6.0, 6.0]]
+obstacles = [[obs1_x, obs1_y, obs1_z, OBS_SAFE],
+             [obs2_x, obs2_y, obs2_z, OBS_SAFE]]
+obs = [[obs1_x, obs1_y, obs1_z], [obs2_x, obs2_y, obs2_z]]
 
 # leader需要避开的障碍物体
 obstacles_new = np.array(obs)
@@ -205,6 +212,32 @@ def update_smooth(frame):
                      P_f2_traj_interpolated[1, :frame])
     f2_line.set_3d_properties(P_f2_traj_interpolated[2, :frame])
 
+    # 在每一帧更新leader和follower之间的虚线
+    if frame < num_frames_interpolated - 1:
+        # 连接leader和follower1的褐色虚线
+        if not hasattr(update_smooth, 'line_f1'):
+            update_smooth.line_f1, = ax.plot([], [], [],
+                                             color='brown',
+                                             linestyle='--')
+        update_smooth.line_f1.set_data([
+            P_l_traj_interpolated[0, frame], P_f1_traj_interpolated[0, frame]
+        ], [P_l_traj_interpolated[1, frame], P_f1_traj_interpolated[1, frame]])
+        update_smooth.line_f1.set_3d_properties([
+            P_l_traj_interpolated[2, frame], P_f1_traj_interpolated[2, frame]
+        ])
+
+        # 连接leader和follower2的褐色虚线
+        if not hasattr(update_smooth, 'line_f2'):
+            update_smooth.line_f2, = ax.plot([], [], [],
+                                             color='brown',
+                                             linestyle='--')
+        update_smooth.line_f2.set_data([
+            P_l_traj_interpolated[0, frame], P_f2_traj_interpolated[0, frame]
+        ], [P_l_traj_interpolated[1, frame], P_f2_traj_interpolated[1, frame]])
+        update_smooth.line_f2.set_3d_properties([
+            P_l_traj_interpolated[2, frame], P_f2_traj_interpolated[2, frame]
+        ])
+
     # 在最後一幀展示Follower1和Follower2的終點
     if frame == num_frames_interpolated - 1:
         ax.scatter(P_f1_end[0],
@@ -240,6 +273,14 @@ def update_smooth(frame):
         ax.plot([P_f1_end[0], P_f2_end[0]], [P_f1_end[1], P_f2_end[1]],
                 [P_f1_end[2], P_f2_end[2]],
                 color='black')
+
+        # 删除虚线
+        update_smooth.line_f1.set_data([], [])
+        update_smooth.line_f1.set_3d_properties([])
+        update_smooth.line_f2.set_data([], [])
+        update_smooth.line_f2.set_3d_properties([])
+
+        ani.event_source.stop()
 
     return leader_line, f1_line, f2_line
 
