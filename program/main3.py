@@ -146,12 +146,12 @@ with open(l_f_loc_path, 'w', newline='', encoding='utf-8') as csvfile:
     for row in start_end_data:
         writer.writerow(row)  # 写入一行数据
 
-obstacles = [[obs1_x, obs1_y, obs1_z, OBS_SAFE],
+obstacles_data = [[obs1_x, obs1_y, obs1_z, OBS_SAFE],
              [obs2_x, obs2_y, obs2_z, OBS_SAFE]]
-obstacles.insert(0, ["obs_x","obs_y","obs_z","obs_r"])
+obstacles_data.insert(0, ["obs_x","obs_y","obs_z","obs_r"])
 with open(obs_loc_path, 'w', newline='', encoding='utf-8') as csvfile:
     writer = csv.writer(csvfile)
-    for row in obstacles:
+    for row in obstacles_data:
         writer.writerow(row)  # 写入一行数据
 
 time_step_data.insert(0, ["time(s)", "final_step"])
