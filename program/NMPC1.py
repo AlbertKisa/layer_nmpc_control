@@ -116,7 +116,7 @@ def NMPCLeader(start_pose, goal_pose, obstacles):
             print("final distance to goal:", dis_to_goal)
             break
 
-    return robot_state_history
+    return robot_state_history, i
 
 
 if __name__ == "__main__":
