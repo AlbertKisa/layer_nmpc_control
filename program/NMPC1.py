@@ -3,7 +3,7 @@ from scipy.optimize import minimize, Bounds
 import matplotlib.pyplot as plt
 
 # simulation time parameter
-SIM_TIME = 62.
+SIM_TIME = 64
 TIMESTEP = 0.5
 NUMBER_OF_TIMESTEPS = int(SIM_TIME / TIMESTEP)
 
@@ -101,8 +101,12 @@ def NMPCLeader(start_pose, goal_pose, obstacles):
     robot_state = start_pose
     p_desired = goal_pose
     robot_state_history = np.empty((3, 0))
+    robot_state_history = np.hstack(
+        (robot_state_history, start_pose.reshape(-1, 1)))
 
+    final_step = 0
     for i in range(NUMBER_OF_TIMESTEPS):
+        final_step = i
         ref_path = ComputeRefPath(robot_state, p_desired, HORIZON_LENGTH,
                                   NMPC_TIMESTEP)
         vel, velocity_profile = ComputeVelocity(robot_state, obstacles,
@@ -115,7 +119,7 @@ def NMPCLeader(start_pose, goal_pose, obstacles):
         if dis_to_goal < 0.4:
             print("final distance to goal:", dis_to_goal)
             break
-
+    print(f"final_step:{final_step}")
     return robot_state_history
 
 

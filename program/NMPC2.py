@@ -3,7 +3,7 @@ from scipy.optimize import minimize, Bounds
 import math
 
 # simulation time parameter
-SIM_TIME = 64.
+SIM_TIME = 64
 TIMESTEP = 0.5
 NUMBER_OF_TIMESTEPS = int(SIM_TIME / TIMESTEP)
 
@@ -150,6 +150,8 @@ def NMPCFollower(start_pose, goal_pose, leader_trajectory, formation_d,
     robot_state_history = np.empty((3, 0))
 
     ref_trajectory = leader_trajectory + formation_d.reshape(-1, 1)
+    robot_state_history = np.hstack(
+        (robot_state_history, start_pose.reshape(-1, 1)))
 
     final_step = 0
 
