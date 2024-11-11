@@ -12,10 +12,10 @@ Qc = 5.
 kappa = 4.
 
 # tracking reference line cost
-alpha = 5.
+alpha = 10.
 
 # ego motion parameter
-VMAX = 4
+VMAX = 3
 
 # nmpc parameter
 HORIZON_LENGTH = int(4)
@@ -50,10 +50,10 @@ def TatalCollisionCost(path_robot, dynamic_obstacles, static_obstacles,
             p_static_obs = static_obstacles[j]
             p_rob = path_robot[3 * i:3 * i + 3]
             total_cost += CollisionCost(p_rob, p_static_obs, static_safe_dis)
-        for k in range(len(dynamic_obstacles)):
-            p_dynamic_obs = dynamic_obstacles[3 * i:3 * i + 3]
-            p_rob = path_robot[3 * i:3 * i + 3]
-            total_cost += CollisionCost(p_rob, p_dynamic_obs, dynamic_safe_dis)
+        # for k in range(len(dynamic_obstacles)):
+        #     p_dynamic_obs = dynamic_obstacles[3 * i:3 * i + 3]
+        #     p_rob = path_robot[3 * i:3 * i + 3]
+        #     total_cost += CollisionCost(p_rob, p_dynamic_obs, dynamic_safe_dis)
     return total_cost
 
 
@@ -95,6 +95,7 @@ def ComputeVelocity(robot_state, neighbor_traj, static_obs, neighbor_safe_dis,
     bounds = Bounds(lower_bound, upper_bound)
 
     res = minimize(CostFn, u0, method='SLSQP', bounds=bounds)
+
     velocity = res.x[:3]
     return velocity, res.x
 
