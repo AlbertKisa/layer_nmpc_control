@@ -21,7 +21,7 @@ now = datetime.datetime.now()
 time_str = now.strftime("%Y%m%d%H%M%S")
 
 # 创建一个以当前时间命名的文件夹
-folder_path = os.path.join(r"D:\闲鱼\layer_nmpc_control\results", time_str)  # 假设文件夹创建在当前目录下
+folder_path = f"./results/{time_str}"  # 假设文件夹创建在当前目录下
 os.makedirs(folder_path, exist_ok=True)  # exist_ok=True 表示如果文件夹已存在，则不会抛出异常
 traj_csv_path = os.path.join(folder_path, "path.csv")
 l_f_loc_path = os.path.join(folder_path, "起点终点坐标.csv")
