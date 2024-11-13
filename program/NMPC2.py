@@ -3,7 +3,7 @@ from scipy.optimize import minimize, Bounds
 import math
 
 # simulation time parameter
-SIM_TIME = 64
+SIM_TIME = 100
 TIMESTEP = 0.5
 NUMBER_OF_TIMESTEPS = int(SIM_TIME / TIMESTEP)
 
@@ -12,16 +12,16 @@ Qc = 5.
 kappa = 4.
 
 # tracking reference line cost
-alpha = 10.
+alpha = 5.
 
 # ego motion parameter
-VMAX = 3
+VMAX = 4
 
 # nmpc parameter
 HORIZON_LENGTH = int(4)
 NMPC_TIMESTEP = 0.3
-upper_bound = [(1 / np.sqrt(2)) * VMAX] * HORIZON_LENGTH * 3
-lower_bound = [-(1 / np.sqrt(2)) * VMAX] * HORIZON_LENGTH * 3
+upper_bound_default = [(1 / np.sqrt(2)) * VMAX] * HORIZON_LENGTH * 3
+lower_bound_default = [-(1 / np.sqrt(2)) * VMAX] * HORIZON_LENGTH * 3
 
 
 def CollisionCost(p_robot, p_obs, safe_dis):
@@ -50,10 +50,10 @@ def TatalCollisionCost(path_robot, dynamic_obstacles, static_obstacles,
             p_static_obs = static_obstacles[j]
             p_rob = path_robot[3 * i:3 * i + 3]
             total_cost += CollisionCost(p_rob, p_static_obs, static_safe_dis)
-        for k in range(len(dynamic_obstacles)):
-            p_dynamic_obs = dynamic_obstacles[3 * i:3 * i + 3]
-            p_rob = path_robot[3 * i:3 * i + 3]
-            total_cost += CollisionCost(p_rob, p_dynamic_obs, dynamic_safe_dis)
+        # for k in range(len(dynamic_obstacles)):
+        #     p_dynamic_obs = dynamic_obstacles[3 * i:3 * i + 3]
+        #     p_rob = path_robot[3 * i:3 * i + 3]
+        #     total_cost += CollisionCost(p_rob, p_dynamic_obs, dynamic_safe_dis)
     return total_cost
 
 
@@ -82,7 +82,7 @@ def TotalCost(u, robot_state, dynamic_obs, static_obs, dynamic_obs_safe_dis,
 
 
 def ComputeVelocity(robot_state, neighbor_traj, static_obs, neighbor_safe_dis,
-                    avoid_static_obs_dis, xref):
+                    avoid_static_obs_dis, xref, lower_bound, upper_bound):
     """
     Computes control velocity of the copter
     """
@@ -144,9 +144,15 @@ def GetNeighbourTraj(neighbour_trajectory, time_stamp, number_of_steps,
     return pre_neighbour_traj.reshape(-1, order="F")
 
 
-def NMPCFollower(start_pose, goal_pose, leader_trajectory, formation_d,
-                 neighbour_trajectory, obstacles, neighbour_safe_dis,
-                 avoid_obs_safe_dis):
+def NMPCFollower(start_pose,
+                 goal_pose,
+                 leader_trajectory,
+                 formation_d,
+                 neighbour_trajectory,
+                 obstacles,
+                 neighbour_safe_dis,
+                 avoid_obs_safe_dis,
+                 use_debug=False):
     robot_state = start_pose
     robot_state_history = np.empty((3, 0))
 
@@ -157,6 +163,15 @@ def NMPCFollower(start_pose, goal_pose, leader_trajectory, formation_d,
     final_step = 0
 
     for i in range(NUMBER_OF_TIMESTEPS):
+        dis_to_goal = np.linalg.norm(goal_pose - robot_state)
+        lower_bound = lower_bound_default
+        upper_bound = upper_bound_default
+        if dis_to_goal >= 2.0 and dis_to_goal <= 4.0:
+            upper_bound = [0.5] * HORIZON_LENGTH * 3
+            lower_bound = [-0.5] * HORIZON_LENGTH * 3
+        if dis_to_goal < 2.0:
+            upper_bound = [0.1] * HORIZON_LENGTH * 3
+            lower_bound = [-0.1] * HORIZON_LENGTH * 3
         final_step = i
         ref_path = ComputeRefPath(robot_state, goal_pose, ref_trajectory, i,
                                   HORIZON_LENGTH, NMPC_TIMESTEP)
@@ -166,12 +181,15 @@ def NMPCFollower(start_pose, goal_pose, leader_trajectory, formation_d,
 
         vel, velocity_profile = ComputeVelocity(robot_state, neighbour_traj,
                                                 obstacles, neighbour_safe_dis,
-                                                avoid_obs_safe_dis, ref_path)
+                                                avoid_obs_safe_dis, ref_path,
+                                                lower_bound, upper_bound)
+        if use_debug:
+            print(f"vel:{vel}")
+
         robot_state = UpdateState(robot_state, vel, TIMESTEP)
 
         robot_state_history = np.hstack(
             (robot_state_history, robot_state.reshape(-1, 1)))
-        dis_to_goal = np.linalg.norm(goal_pose - robot_state)
         if dis_to_goal < 0.1:
             print("final distance to goal:", dis_to_goal)
             break

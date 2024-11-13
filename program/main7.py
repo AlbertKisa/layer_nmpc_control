@@ -33,11 +33,11 @@ P_f2_f1_start = np.array([f2_f1_random, 0.0, 0])
 P_f2_f2_start = np.array([f2_f2_random, 0.0, 0])
 
 # 定義向量以形成編隊
-d1 = np.array([-1.0, -1.0, 0.])
-d2 = np.array([1.0, -1.0, 0.])
+d1 = np.array([-1.0, -1.0, -0.5])
+d2 = np.array([1.0, -1.0, -0.5])
 
-f_d1 = np.array([-0.5, -0.5, 0.])
-f_d2 = np.array([0.5, -0.5, 0.])
+f_d1 = np.array([-0.5, -0.5, -0.25])
+f_d2 = np.array([0.5, -0.5, -0.25])
 
 obs1_x = random.uniform(4, 7)
 obs1_y = obs1_x
@@ -64,10 +64,10 @@ time.sleep(0.5)
 print(f"P_f1_start:{P_f1_start} P_f1_goal:{P_l_goal + d1}")
 P_f1_traj = NMPCFollower(P_f1_start, P_l_goal + d1, P_l_traj, d1,
                          np.empty((3, 0)), obstacles_new, NEIGHBOUR_SAFE,
-                         OBS_SAFE)
+                         OBS_SAFE, True)
 print(f"P_f2_start:{P_f2_start} P_f2_goal:{P_l_goal + d2}")
 P_f2_traj = NMPCFollower(P_f2_start, P_l_goal + d2, P_l_traj, d2, P_f1_traj,
-                         obstacles_new, NEIGHBOUR_SAFE, OBS_SAFE)
+                         obstacles_new, NEIGHBOUR_SAFE, OBS_SAFE, True)
 
 # 计算F1_f1和F1_f2的轨迹
 print(f"P_f1_f1_start:{P_f1_f1_start} P_f1_f1_goal:{P_l_goal + d1 + f_d1}")
