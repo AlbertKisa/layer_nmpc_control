@@ -1,3 +1,11 @@
+kk
+勞煩吳老師在更新七台資料內容時加上以下內容
+最終輸出資料額外新增三CSV檔 
+1.將7台飛機的速度
+2.final step
+3.飛機與目標點的距離誤差
+
+
 https://github.com/chengji253/multi_agent_path_planning
 
 kk
