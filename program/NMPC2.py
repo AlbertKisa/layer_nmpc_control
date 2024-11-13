@@ -50,10 +50,10 @@ def TatalCollisionCost(path_robot, dynamic_obstacles, static_obstacles,
             p_static_obs = static_obstacles[j]
             p_rob = path_robot[3 * i:3 * i + 3]
             total_cost += CollisionCost(p_rob, p_static_obs, static_safe_dis)
-        # for k in range(len(dynamic_obstacles)):
-        #     p_dynamic_obs = dynamic_obstacles[3 * i:3 * i + 3]
-        #     p_rob = path_robot[3 * i:3 * i + 3]
-        #     total_cost += CollisionCost(p_rob, p_dynamic_obs, dynamic_safe_dis)
+        for k in range(len(dynamic_obstacles)):
+            p_dynamic_obs = dynamic_obstacles[3 * i:3 * i + 3]
+            p_rob = path_robot[3 * i:3 * i + 3]
+            total_cost += CollisionCost(p_rob, p_dynamic_obs, dynamic_safe_dis)
     return total_cost
 
 
