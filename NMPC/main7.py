@@ -11,7 +11,7 @@ from NMPC1 import NMPCLeader
 from NMPC2 import NMPCFollower
 
 # safe parameter
-NEIGHBOUR_SAFE = 1.
+NEIGHBOUR_SAFE = 0.5
 OBS_SAFE = 1.0
 
 # 設定Leader初始位置和目標位置
@@ -22,9 +22,9 @@ P_l_goal = np.array([15, 15, 15])
 f1_random = random.uniform(-2, -1)
 f2_random = random.uniform(1, 2)
 f1_f1_random = random.uniform(-4, -3)
-f1_f2_random = random.uniform(3, 4)
-f2_f1_random = random.uniform(-6, -5)
-f2_f2_random = random.uniform(5, 6)
+f1_f2_random = random.uniform(-3, -2)
+f2_f1_random = random.uniform(2, 3)
+f2_f2_random = random.uniform(3, 4)
 P_f1_start = np.array([f1_random, 0.0, 0])
 P_f2_start = np.array([f2_random, 0.0, 0])
 P_f1_f1_start = np.array([f1_f1_random, 0.0, 0])
@@ -33,8 +33,11 @@ P_f2_f1_start = np.array([f2_f1_random, 0.0, 0])
 P_f2_f2_start = np.array([f2_f2_random, 0.0, 0])
 
 # 定義向量以形成編隊
-d1 = np.array([-1.0, -1.0, 0])
-d2 = np.array([1.0, -1.0, 0])
+d1 = np.array([-1.0, -1.0, -0.5])
+d2 = np.array([1.0, -1.0, -0.5])
+
+f_d1 = np.array([-0.5, -0.5, -0.25])
+f_d2 = np.array([0.5, -0.5, -0.25])
 
 obs1_x = random.uniform(4, 7)
 obs1_y = obs1_x
@@ -51,32 +54,41 @@ obs = [[obs1_x, obs1_y, obs1_z], [obs2_x, obs2_y, obs2_z]]
 obstacles_new = np.array(obs)
 
 # 計算Leader的軌跡
+print(f"P_l_start:{P_l_start} P_l_goal:{P_l_goal}")
 P_l_traj = NMPCLeader(P_l_start, P_l_goal, obstacles_new)
 
 # 延遲兩秒後計算mpc2，讓Follower跟隨Leader
 time.sleep(0.5)
 
 # 計算Follower1和Follower2的軌跡
+print(f"P_f1_start:{P_f1_start} P_f1_goal:{P_l_goal + d1}")
 P_f1_traj = NMPCFollower(P_f1_start, P_l_goal + d1, P_l_traj, d1,
                          np.empty((3, 0)), obstacles_new, NEIGHBOUR_SAFE,
-                         OBS_SAFE)
+                         OBS_SAFE, True)
+print(f"P_f2_start:{P_f2_start} P_f2_goal:{P_l_goal + d2}")
 P_f2_traj = NMPCFollower(P_f2_start, P_l_goal + d2, P_l_traj, d2, P_f1_traj,
-                         obstacles_new, NEIGHBOUR_SAFE, OBS_SAFE)
+                         obstacles_new, NEIGHBOUR_SAFE, OBS_SAFE, True)
 
 # 计算F1_f1和F1_f2的轨迹
-P_f1_f1_traj = NMPCFollower(P_f1_f1_start, P_l_goal + d1 + d1, P_f1_traj, d1,
+print(f"P_f1_f1_start:{P_f1_f1_start} P_f1_f1_goal:{P_l_goal + d1 + f_d1}")
+P_f1_f1_traj = NMPCFollower(P_f1_f1_start,
+                            P_l_goal + d1 + f_d1, P_f1_traj, f_d1,
                             np.empty((3, 0)), obstacles_new, NEIGHBOUR_SAFE,
                             OBS_SAFE)
-P_f1_f2_traj = NMPCFollower(P_f1_f2_start, P_l_goal + d1 + d2, P_f1_traj, d2,
-                            P_f1_f1_traj, obstacles_new, NEIGHBOUR_SAFE,
+print(f"P_f1_f2_start:{P_f1_f2_start} P_f1_f2_goal:{P_l_goal + d1 + f_d2}")
+P_f1_f2_traj = NMPCFollower(P_f1_f2_start, P_l_goal + d1 + f_d2, P_f1_traj,
+                            f_d2, P_f1_f1_traj, obstacles_new, NEIGHBOUR_SAFE,
                             OBS_SAFE)
 
 # 计算F1_f1和F1_f2的轨迹
-P_f2_f1_traj = NMPCFollower(P_f2_f1_start, P_l_goal + d2 + d1, P_f2_traj, d1,
+print(f"P_f2_f1_start:{P_f2_f1_start} P_f2_f1_goal:{P_l_goal + d2 + f_d1}")
+P_f2_f1_traj = NMPCFollower(P_f2_f1_start,
+                            P_l_goal + d2 + f_d1, P_f2_traj, f_d1,
                             np.empty((3, 0)), obstacles_new, NEIGHBOUR_SAFE,
                             OBS_SAFE)
-P_f2_f2_traj = NMPCFollower(P_f2_f2_start, P_l_goal + d2 + d2, P_f2_traj, d2,
-                            P_f2_f1_traj, obstacles_new, NEIGHBOUR_SAFE,
+print(f"P_f2_f2_start:{P_f2_f2_start} P_f2_f2_goal:{P_l_goal + d2 + f_d2}")
+P_f2_f2_traj = NMPCFollower(P_f2_f2_start, P_l_goal + d2 + f_d2, P_f2_traj,
+                            f_d2, P_f2_f1_traj, obstacles_new, NEIGHBOUR_SAFE,
                             OBS_SAFE)
 
 # 計算Follower的終點，定義為全局變數
@@ -176,11 +188,11 @@ ax.plot_surface(x1_a, y1_a, z1_a, color='b', alpha=0.6)  # 使用半透明的蓝
 
 # 初始化三條線條
 leader_line, = ax.plot([], [], [], label="Leader Trajectory", color='red')
-f1_line, = ax.plot([], [], [], label="Follower1 Trajectory", color='blue')
-f2_line, = ax.plot([], [], [], label="Follower2 Trajectory", color='green')
-f1_f1_line, = ax.plot([], [], [], label="F1_F1 Trajectory", color='pink')
+f1_line, = ax.plot([], [], [], label="Follower1 Trajectory", color='green')
+f2_line, = ax.plot([], [], [], label="Follower2 Trajectory", color='orange')
+f1_f1_line, = ax.plot([], [], [], label="F1_F1 Trajectory", color='cyan')
 f1_f2_line, = ax.plot([], [], [], label="F1_F2 Trajectory", color='brown')
-f2_f1_line, = ax.plot([], [], [], label="F2_F1 Trajectory", color='orange')
+f2_f1_line, = ax.plot([], [], [], label="F2_F1 Trajectory", color='pink')
 f2_f2_line, = ax.plot([], [], [], label="F2_F2 Trajectory", color='purple')
 
 # 初始和目標點，以紅色標記並用黑色標注座標
@@ -212,7 +224,7 @@ ax.text(P_l_goal[0],
 ax.scatter(P_f1_start[0],
            P_f1_start[1],
            P_f1_start[2],
-           color='blue',
+           color='green',
            label='Follower1 Start',
            s=100)
 ax.text(P_f1_start[0],
@@ -224,7 +236,7 @@ ax.text(P_f1_start[0],
 ax.scatter(P_f2_start[0],
            P_f2_start[1],
            P_f2_start[2],
-           color='green',
+           color='orange',
            label='Follower2 Start',
            s=100)
 ax.text(P_f2_start[0],
@@ -236,7 +248,7 @@ ax.text(P_f2_start[0],
 ax.scatter(P_f1_f1_start[0],
            P_f1_f1_start[1],
            P_f1_f1_start[2],
-           color='pink',
+           color='cyan',
            label='Follower1_f1 Start',
            s=100)
 ax.text(
@@ -262,7 +274,7 @@ ax.text(
 ax.scatter(P_f2_f1_start[0],
            P_f2_f1_start[1],
            P_f2_f1_start[2],
-           color='orange',
+           color='pink',
            label='Follower2_f1 Start',
            s=100)
 ax.text(
@@ -371,7 +383,7 @@ def update_smooth(frame):
         # 连接follower1和follower1_1的褐色虚线
         if not hasattr(update_smooth, 'line_f1_f1'):
             update_smooth.line_f1_f1, = ax.plot([], [], [],
-                                                color='gray',
+                                                color='green',
                                                 linestyle='--')
         update_smooth.line_f1_f1.set_data([
             P_f1_traj_interpolated[0, frame], P_f1_f1_traj_interpolated[0,
@@ -388,7 +400,7 @@ def update_smooth(frame):
         # 连接follower1和follower1_2的褐色虚线
         if not hasattr(update_smooth, 'line_f1_f2'):
             update_smooth.line_f1_f2, = ax.plot([], [], [],
-                                                color='gray',
+                                                color='green',
                                                 linestyle='--')
         update_smooth.line_f1_f2.set_data([
             P_f1_traj_interpolated[0, frame], P_f1_f2_traj_interpolated[0,
@@ -405,7 +417,7 @@ def update_smooth(frame):
         # 连接follower2和follower2_1的褐色虚线
         if not hasattr(update_smooth, 'line_f2_f1'):
             update_smooth.line_f2_f1, = ax.plot([], [], [],
-                                                color='gray',
+                                                color='orange',
                                                 linestyle='--')
         update_smooth.line_f2_f1.set_data([
             P_f2_traj_interpolated[0, frame], P_f2_f1_traj_interpolated[0,
@@ -422,7 +434,7 @@ def update_smooth(frame):
         # 连接follower2和follower2_2的褐色虚线
         if not hasattr(update_smooth, 'line_f2_f2'):
             update_smooth.line_f2_f2, = ax.plot([], [], [],
-                                                color='gray',
+                                                color='orange',
                                                 linestyle='--')
         update_smooth.line_f2_f2.set_data([
             P_f2_traj_interpolated[0, frame], P_f2_f2_traj_interpolated[0,
@@ -441,7 +453,7 @@ def update_smooth(frame):
         ax.scatter(P_f1_end[0],
                    P_f1_end[1],
                    P_f1_end[2],
-                   color='blue',
+                   color='green',
                    label='Follower1 End',
                    s=100)
         ax.text(P_f1_end[0],
@@ -453,7 +465,7 @@ def update_smooth(frame):
         ax.scatter(P_f2_end[0],
                    P_f2_end[1],
                    P_f2_end[2],
-                   color='green',
+                   color='orange',
                    label='Follower2 End',
                    s=100)
         ax.text(P_f2_end[0],
@@ -465,7 +477,7 @@ def update_smooth(frame):
         ax.scatter(P_f1_f1_end[0],
                    P_f1_f1_end[1],
                    P_f1_f1_end[2],
-                   color='pink',
+                   color='cyan',
                    label='Follower1_1 End',
                    s=100)
         ax.text(
@@ -491,7 +503,7 @@ def update_smooth(frame):
         ax.scatter(P_f2_f1_end[0],
                    P_f2_f1_end[1],
                    P_f2_f1_end[2],
-                   color='orange',
+                   color='pink',
                    label='Follower2_1 End',
                    s=100)
         ax.text(
@@ -513,7 +525,7 @@ def update_smooth(frame):
             P_f2_f2_end[2],
             f'({P_f2_f2_end[0]:.2f}, {P_f2_f2_end[1]:.2f}, {P_f2_f2_end[2]:.2f})',
             color='black')
-
+        # plot l->f1->f2
         ax.plot([P_l_traj[0, -1], P_f1_end[0]], [P_l_traj[1, -1], P_f1_end[1]],
                 [P_l_traj[2, -1], P_f1_end[2]],
                 color='black')
@@ -522,6 +534,29 @@ def update_smooth(frame):
                 color='black')
         ax.plot([P_f1_end[0], P_f2_end[0]], [P_f1_end[1], P_f2_end[1]],
                 [P_f1_end[2], P_f2_end[2]],
+                color='black')
+        # plot f1->f1_1->f1_2
+        ax.plot([P_f1_end[0], P_f1_f1_end[0]], [P_f1_end[1], P_f1_f1_end[1]],
+                [P_f1_end[2], P_f1_f1_end[2]],
+                color='black')
+        ax.plot([P_f1_end[0], P_f1_f2_end[0]], [P_f1_end[1], P_f1_f2_end[1]],
+                [P_f1_end[2], P_f1_f2_end[2]],
+                color='black')
+        ax.plot([P_f1_f1_end[0], P_f1_f2_end[0]],
+                [P_f1_f1_end[1], P_f1_f2_end[1]],
+                [P_f1_f1_end[2], P_f1_f2_end[2]],
+                color='black')
+
+        # plot f2->f2_1->f2_2
+        ax.plot([P_f2_end[0], P_f2_f1_end[0]], [P_f2_end[1], P_f2_f1_end[1]],
+                [P_f2_end[2], P_f2_f1_end[2]],
+                color='black')
+        ax.plot([P_f2_end[0], P_f2_f2_end[0]], [P_f2_end[1], P_f2_f2_end[1]],
+                [P_f2_end[2], P_f2_f2_end[2]],
+                color='black')
+        ax.plot([P_f2_f1_end[0], P_f2_f2_end[0]],
+                [P_f2_f1_end[1], P_f2_f2_end[1]],
+                [P_f2_f1_end[2], P_f2_f2_end[2]],
                 color='black')
 
         # 删除虚线
