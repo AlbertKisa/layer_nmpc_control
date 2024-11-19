@@ -10,6 +10,24 @@ import pandas as pd
 from NMPC1 import NMPCLeader
 from NMPC2 import NMPCFollower
 
+import datetime
+import os
+import csv
+
+now = datetime.datetime.now()
+
+# 格式化时间字符串为“年月日时分秒”的格式
+time_str = now.strftime("%Y%m%d%H%M%S")
+
+# 创建一个以当前时间命名的文件夹
+folder_path = rf".\results\main7\{time_str}"  # 假设文件夹创建在当前目录下
+os.makedirs(folder_path, exist_ok=True)  # exist_ok=True 表示如果文件夹已存在，则不会抛出异常
+traj_csv_path = os.path.join(folder_path, "path.csv")
+l_f_loc_path = os.path.join(folder_path, "起点终点坐标.csv")
+obs_loc_path = os.path.join(folder_path, "障碍物坐标.csv")
+step_time_path = os.path.join(folder_path, "运行时间和迭代步数.csv")
+time_step_data = []
+
 # safe parameter
 NEIGHBOUR_SAFE = 0.5
 OBS_SAFE = 1.0
@@ -55,41 +73,58 @@ obstacles_new = np.array(obs)
 
 # 計算Leader的軌跡
 print(f"P_l_start:{P_l_start} P_l_goal:{P_l_goal}")
-P_l_traj = NMPCLeader(P_l_start, P_l_goal, obstacles_new)
+time_start = time.time()
+P_l_traj, step = NMPCLeader(P_l_start, P_l_goal, obstacles_new)
+time_step_data.append(["{:3f}".format(time.time()-time_start), step])
 
 # 延遲兩秒後計算mpc2，讓Follower跟隨Leader
 time.sleep(0.5)
 
 # 計算Follower1和Follower2的軌跡
 print(f"P_f1_start:{P_f1_start} P_f1_goal:{P_l_goal + d1}")
-P_f1_traj = NMPCFollower(P_f1_start, P_l_goal + d1, P_l_traj, d1,
+time_start = time.time()
+P_f1_traj, step = NMPCFollower(P_f1_start, P_l_goal + d1, P_l_traj, d1,
                          np.empty((3, 0)), obstacles_new, NEIGHBOUR_SAFE,
                          OBS_SAFE, True)
+time_step_data.append(["{:3f}".format(time.time()-time_start), step])
+
 print(f"P_f2_start:{P_f2_start} P_f2_goal:{P_l_goal + d2}")
-P_f2_traj = NMPCFollower(P_f2_start, P_l_goal + d2, P_l_traj, d2, P_f1_traj,
+time_start = time.time()
+P_f2_traj, step = NMPCFollower(P_f2_start, P_l_goal + d2, P_l_traj, d2, P_f1_traj,
                          obstacles_new, NEIGHBOUR_SAFE, OBS_SAFE, True)
+time_step_data.append(["{:3f}".format(time.time()-time_start), step])
 
 # 计算F1_f1和F1_f2的轨迹
 print(f"P_f1_f1_start:{P_f1_f1_start} P_f1_f1_goal:{P_l_goal + d1 + f_d1}")
-P_f1_f1_traj = NMPCFollower(P_f1_f1_start,
+time_start = time.time()
+P_f1_f1_traj, step = NMPCFollower(P_f1_f1_start,
                             P_l_goal + d1 + f_d1, P_f1_traj, f_d1,
                             np.empty((3, 0)), obstacles_new, NEIGHBOUR_SAFE,
                             OBS_SAFE)
+time_step_data.append(["{:3f}".format(time.time()-time_start), step])
+
 print(f"P_f1_f2_start:{P_f1_f2_start} P_f1_f2_goal:{P_l_goal + d1 + f_d2}")
-P_f1_f2_traj = NMPCFollower(P_f1_f2_start, P_l_goal + d1 + f_d2, P_f1_traj,
+time_start = time.time()
+P_f1_f2_traj, step = NMPCFollower(P_f1_f2_start, P_l_goal + d1 + f_d2, P_f1_traj,
                             f_d2, P_f1_f1_traj, obstacles_new, NEIGHBOUR_SAFE,
                             OBS_SAFE)
+time_step_data.append(["{:3f}".format(time.time()-time_start), step])
 
 # 计算F1_f1和F1_f2的轨迹
 print(f"P_f2_f1_start:{P_f2_f1_start} P_f2_f1_goal:{P_l_goal + d2 + f_d1}")
-P_f2_f1_traj = NMPCFollower(P_f2_f1_start,
+time_start = time.time()
+P_f2_f1_traj, step = NMPCFollower(P_f2_f1_start,
                             P_l_goal + d2 + f_d1, P_f2_traj, f_d1,
                             np.empty((3, 0)), obstacles_new, NEIGHBOUR_SAFE,
                             OBS_SAFE)
+time_step_data.append(["{:3f}".format(time.time()-time_start), step])
+
 print(f"P_f2_f2_start:{P_f2_f2_start} P_f2_f2_goal:{P_l_goal + d2 + f_d2}")
-P_f2_f2_traj = NMPCFollower(P_f2_f2_start, P_l_goal + d2 + f_d2, P_f2_traj,
+time_start = time.time()
+P_f2_f2_traj, step = NMPCFollower(P_f2_f2_start, P_l_goal + d2 + f_d2, P_f2_traj,
                             f_d2, P_f2_f1_traj, obstacles_new, NEIGHBOUR_SAFE,
                             OBS_SAFE)
+time_step_data.append(["{:3f}".format(time.time()-time_start), step])
 
 # 計算Follower的終點，定義為全局變數
 P_f1_end = P_f1_traj[:, -1]  # Follower1 的終點
@@ -154,7 +189,71 @@ leader_pose = {
 }
 
 df = pd.DataFrame(leader_pose)
-df.to_csv("path.csv", index=False)
+df.to_csv(traj_csv_path, index=False)
+
+start_end_data = [
+    [
+        P_l_start[0],P_l_start[1],P_l_start[2],
+        P_l_traj_interpolated[0, num_frames_interpolated-1],
+        P_l_traj_interpolated[1, num_frames_interpolated-1],
+        P_l_traj_interpolated[2, num_frames_interpolated-1]
+    ],
+    [
+        P_f1_start[0], P_f1_start[1], P_f1_start[2], 
+        P_f1_traj_interpolated[0, num_frames_interpolated-1], 
+        P_f1_traj_interpolated[1, num_frames_interpolated-1], 
+        P_f1_traj_interpolated[2, num_frames_interpolated-1]
+    ],
+    [
+        P_f2_start[0], P_f2_start[1], P_f2_start[2], 
+        P_f2_traj_interpolated[0, num_frames_interpolated-1], 
+        P_f2_traj_interpolated[1, num_frames_interpolated-1], 
+        P_f2_traj_interpolated[2, num_frames_interpolated-1]
+    ],
+        [
+        P_f1_f1_start[0], P_f1_f1_start[1], P_f1_f1_start[2], 
+        P_f1_f1_traj_interpolated[0, num_frames_interpolated-1], 
+        P_f1_f1_traj_interpolated[1, num_frames_interpolated-1], 
+        P_f1_f1_traj_interpolated[2, num_frames_interpolated-1]
+    ],
+    [
+        P_f1_f2_start[0], P_f1_f2_start[1], P_f1_f2_start[2], 
+        P_f1_f2_traj_interpolated[0, num_frames_interpolated-1], 
+        P_f1_f2_traj_interpolated[1, num_frames_interpolated-1], 
+        P_f1_f2_traj_interpolated[2, num_frames_interpolated-1]
+    ],
+    [
+        P_f2_f1_start[0], P_f2_f1_start[1], P_f2_f1_start[2], 
+        P_f2_f1_traj_interpolated[0, num_frames_interpolated-1], 
+        P_f2_f1_traj_interpolated[1, num_frames_interpolated-1], 
+        P_f2_f1_traj_interpolated[2, num_frames_interpolated-1]
+    ],
+    [
+        P_f2_f2_start[0], P_f2_f2_start[1], P_f2_f2_start[2], 
+        P_f2_f2_traj_interpolated[0, num_frames_interpolated-1], 
+        P_f2_f2_traj_interpolated[1, num_frames_interpolated-1], 
+        P_f2_f2_traj_interpolated[2, num_frames_interpolated-1]
+    ]
+]
+start_end_data.insert(0, ["start_x","start_y","start_z","end_x","end_y","end_z"])
+with open(l_f_loc_path, 'w', newline='', encoding='utf-8') as csvfile:
+    writer = csv.writer(csvfile)
+    for row in start_end_data:
+        writer.writerow(row)  # 写入一行数据
+
+obstacles_data = [[obs1_x, obs1_y, obs1_z, OBS_SAFE],
+             [obs2_x, obs2_y, obs2_z, OBS_SAFE]]
+obstacles_data.insert(0, ["obs_x","obs_y","obs_z","obs_r"])
+with open(obs_loc_path, 'w', newline='', encoding='utf-8') as csvfile:
+    writer = csv.writer(csvfile)
+    for row in obstacles_data:
+        writer.writerow(row)  # 写入一行数据
+
+time_step_data.insert(0, ["time(s)", "final_step"])
+with open(step_time_path, 'w', newline='', encoding='utf-8') as csvfile:
+    writer = csv.writer(csvfile)
+    for row in time_step_data:
+        writer.writerow(row)  # 写入一行数据
 
 # 创建球的参数
 u = np.linspace(0, 2 * np.pi, 100)  # 从 0 到 2π

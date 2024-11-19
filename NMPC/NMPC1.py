@@ -128,8 +128,8 @@ def NMPCLeader(start_pose, goal_pose, obstacles):
         if dis_to_goal < 0.1:
             print("final distance to goal:", dis_to_goal)
             break
-    print(f"final_step:{final_step}")
-    return robot_state_history
+
+    return robot_state_history, i
 
 
 if __name__ == "__main__":

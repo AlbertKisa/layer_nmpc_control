@@ -198,4 +198,4 @@ def NMPCFollower(start_pose,
             break
     print(f"final_step:{final_step}")
 
-    return robot_state_history
+    return robot_state_history, i
