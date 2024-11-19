@@ -106,7 +106,7 @@ time.sleep(3)
 def interpolate_trajectory(trajectory, num_points):
     t_original = np.linspace(0, 1, trajectory.shape[1])
     t_new = np.linspace(0, 1, num_points)
-    interp_func = interp1d(t_original, trajectory, axis=1, kind='linear')
+    interp_func = interp1d(t_original, trajectory, axis=1, kind='cubic')
     return interp_func(t_new)
 
 

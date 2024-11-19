@@ -166,10 +166,13 @@ def NMPCFollower(start_pose,
         dis_to_goal = np.linalg.norm(goal_pose - robot_state)
         lower_bound = lower_bound_default
         upper_bound = upper_bound_default
-        if dis_to_goal >= 2.0 and dis_to_goal <= 4.0:
+        if dis_to_goal >= 4.0 and dis_to_goal <= 8.0:
+            upper_bound = [1.0] * HORIZON_LENGTH * 3
+            lower_bound = [-1.0] * HORIZON_LENGTH * 3
+        if dis_to_goal >= 1.0 and dis_to_goal < 4.0:
             upper_bound = [0.5] * HORIZON_LENGTH * 3
             lower_bound = [-0.5] * HORIZON_LENGTH * 3
-        if dis_to_goal < 2.0:
+        if dis_to_goal < 1.0:
             upper_bound = [0.1] * HORIZON_LENGTH * 3
             lower_bound = [-0.1] * HORIZON_LENGTH * 3
         final_step = i
