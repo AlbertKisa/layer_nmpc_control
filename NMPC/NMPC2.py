@@ -161,6 +161,7 @@ def NMPCFollower(start_pose,
         (robot_state_history, start_pose.reshape(-1, 1)))
 
     final_step = 0
+    vel_list = []
 
     for i in range(NUMBER_OF_TIMESTEPS):
         dis_to_goal = np.linalg.norm(goal_pose - robot_state)
@@ -186,6 +187,7 @@ def NMPCFollower(start_pose,
                                                 obstacles, neighbour_safe_dis,
                                                 avoid_obs_safe_dis, ref_path,
                                                 lower_bound, upper_bound)
+        vel_list.append(vel.tolist()+[np.linalg.norm(vel)])
         if use_debug:
             print(f"vel:{vel}")
 
@@ -198,4 +200,4 @@ def NMPCFollower(start_pose,
             break
     print(f"final_step:{final_step}")
 
-    return robot_state_history, i
+    return robot_state_history, final_step, vel_list, dis_to_goal

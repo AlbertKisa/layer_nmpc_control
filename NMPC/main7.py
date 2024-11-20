@@ -26,7 +26,11 @@ traj_csv_path = os.path.join(folder_path, "path.csv")
 l_f_loc_path = os.path.join(folder_path, "起点终点坐标.csv")
 obs_loc_path = os.path.join(folder_path, "障碍物坐标.csv")
 step_time_path = os.path.join(folder_path, "运行时间和迭代步数.csv")
+vel_path = os.path.join(folder_path, "速度.csv")
+dis_to_goal_path = os.path.join(folder_path, "终点误差.csv")
 time_step_data = []
+vel_list = []
+dis_to_goal_list = []
 
 # safe parameter
 NEIGHBOUR_SAFE = 0.5
@@ -74,8 +78,10 @@ obstacles_new = np.array(obs)
 # 計算Leader的軌跡
 print(f"P_l_start:{P_l_start} P_l_goal:{P_l_goal}")
 time_start = time.time()
-P_l_traj, step = NMPCLeader(P_l_start, P_l_goal, obstacles_new)
+P_l_traj, step, vel, dis_to_goal = NMPCLeader(P_l_start, P_l_goal, obstacles_new)
 time_step_data.append(["{:3f}".format(time.time()-time_start), step])
+vel_list = vel
+dis_to_goal_list.append(dis_to_goal)
 
 # 延遲兩秒後計算mpc2，讓Follower跟隨Leader
 time.sleep(0.5)
@@ -83,48 +89,60 @@ time.sleep(0.5)
 # 計算Follower1和Follower2的軌跡
 print(f"P_f1_start:{P_f1_start} P_f1_goal:{P_l_goal + d1}")
 time_start = time.time()
-P_f1_traj, step = NMPCFollower(P_f1_start, P_l_goal + d1, P_l_traj, d1,
+P_f1_traj, step, vel, dis_to_goal = NMPCFollower(P_f1_start, P_l_goal + d1, P_l_traj, d1,
                          np.empty((3, 0)), obstacles_new, NEIGHBOUR_SAFE,
                          OBS_SAFE, True)
 time_step_data.append(["{:3f}".format(time.time()-time_start), step])
+vel_list = [vel1+vel2 for vel1,vel2 in zip(vel_list, vel)]
+dis_to_goal_list.append(dis_to_goal)
 
 print(f"P_f2_start:{P_f2_start} P_f2_goal:{P_l_goal + d2}")
 time_start = time.time()
-P_f2_traj, step = NMPCFollower(P_f2_start, P_l_goal + d2, P_l_traj, d2, P_f1_traj,
+P_f2_traj, step, vel, dis_to_goal = NMPCFollower(P_f2_start, P_l_goal + d2, P_l_traj, d2, P_f1_traj,
                          obstacles_new, NEIGHBOUR_SAFE, OBS_SAFE, True)
 time_step_data.append(["{:3f}".format(time.time()-time_start), step])
+vel_list = [vel1+vel2 for vel1,vel2 in zip(vel_list, vel)]
+dis_to_goal_list.append(dis_to_goal)
 
 # 计算F1_f1和F1_f2的轨迹
 print(f"P_f1_f1_start:{P_f1_f1_start} P_f1_f1_goal:{P_l_goal + d1 + f_d1}")
 time_start = time.time()
-P_f1_f1_traj, step = NMPCFollower(P_f1_f1_start,
+P_f1_f1_traj, step, vel, dis_to_goal = NMPCFollower(P_f1_f1_start,
                             P_l_goal + d1 + f_d1, P_f1_traj, f_d1,
                             np.empty((3, 0)), obstacles_new, NEIGHBOUR_SAFE,
                             OBS_SAFE)
 time_step_data.append(["{:3f}".format(time.time()-time_start), step])
+vel_list = [vel1+vel2 for vel1,vel2 in zip(vel_list, vel)]
+dis_to_goal_list.append(dis_to_goal)
 
 print(f"P_f1_f2_start:{P_f1_f2_start} P_f1_f2_goal:{P_l_goal + d1 + f_d2}")
 time_start = time.time()
-P_f1_f2_traj, step = NMPCFollower(P_f1_f2_start, P_l_goal + d1 + f_d2, P_f1_traj,
+P_f1_f2_traj, step, vel, dis_to_goal = NMPCFollower(P_f1_f2_start, P_l_goal + d1 + f_d2, P_f1_traj,
                             f_d2, P_f1_f1_traj, obstacles_new, NEIGHBOUR_SAFE,
                             OBS_SAFE)
 time_step_data.append(["{:3f}".format(time.time()-time_start), step])
+vel_list = [vel1+vel2 for vel1,vel2 in zip(vel_list, vel)]
+dis_to_goal_list.append(dis_to_goal)
 
 # 计算F1_f1和F1_f2的轨迹
 print(f"P_f2_f1_start:{P_f2_f1_start} P_f2_f1_goal:{P_l_goal + d2 + f_d1}")
 time_start = time.time()
-P_f2_f1_traj, step = NMPCFollower(P_f2_f1_start,
+P_f2_f1_traj, step, vel, dis_to_goal = NMPCFollower(P_f2_f1_start,
                             P_l_goal + d2 + f_d1, P_f2_traj, f_d1,
                             np.empty((3, 0)), obstacles_new, NEIGHBOUR_SAFE,
                             OBS_SAFE)
 time_step_data.append(["{:3f}".format(time.time()-time_start), step])
+vel_list = [vel1+vel2 for vel1,vel2 in zip(vel_list, vel)]
+dis_to_goal_list.append(dis_to_goal)
 
 print(f"P_f2_f2_start:{P_f2_f2_start} P_f2_f2_goal:{P_l_goal + d2 + f_d2}")
 time_start = time.time()
-P_f2_f2_traj, step = NMPCFollower(P_f2_f2_start, P_l_goal + d2 + f_d2, P_f2_traj,
+P_f2_f2_traj, step, vel, dis_to_goal = NMPCFollower(P_f2_f2_start, P_l_goal + d2 + f_d2, P_f2_traj,
                             f_d2, P_f2_f1_traj, obstacles_new, NEIGHBOUR_SAFE,
                             OBS_SAFE)
 time_step_data.append(["{:3f}".format(time.time()-time_start), step])
+vel_list = [vel1+vel2 for vel1,vel2 in zip(vel_list, vel)]
+dis_to_goal_list.append(dis_to_goal)
 
 # 計算Follower的終點，定義為全局變數
 P_f1_end = P_f1_traj[:, -1]  # Follower1 的終點
@@ -254,6 +272,27 @@ with open(step_time_path, 'w', newline='', encoding='utf-8') as csvfile:
     writer = csv.writer(csvfile)
     for row in time_step_data:
         writer.writerow(row)  # 写入一行数据
+
+vel_list.insert(0, [
+    "leader_x", "leader_y", "leader_z", "leader_norm", 
+    "follow1_x", "follow1_y", "follow1_z", "follow1_norm", 
+    "follow2_x", "follow2_y", "follow2_z", "follow2_norm", 
+    "follow1_1_x", "follow1_1_y", "follow1_1_z", "follow1_1_norm", 
+    "follow1_2_x", "follow1_2_y", "follow1_2_z", "follow1_2_norm", 
+    "follow2_1_x", "follow2_1_y", "follow2_1_z", "follow2_1_norm", 
+    "follow2_2_x", "follow2_2_y", "follow2_2_z", "follow2_2_norm", 
+                    ])
+with open(vel_path, 'w', newline='', encoding='utf-8') as csvfile:
+    writer = csv.writer(csvfile)
+    for row in vel_list:
+        writer.writerow(row)
+
+dis_to_goal_list = [dis_to_goal_list]
+dis_to_goal_list.insert(0, ["leader", "follow1", "follow2", "follow1_1", "follow1_2", "follow2_1", "follow2_2"])
+with open(dis_to_goal_path, 'w', newline='', encoding='utf-8') as csvfile:
+    writer = csv.writer(csvfile)
+    for row in dis_to_goal_list:
+        writer.writerow(row)
 
 # 创建球的参数
 u = np.linspace(0, 2 * np.pi, 100)  # 从 0 到 2π
