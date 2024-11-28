@@ -18,6 +18,13 @@ def PointToSegmentDistance(p, seg_begin, seg_end):
     return np.linalg.norm(pd)
 
 
+def GenerateHexagonVertices(radius=1.0):
+    angles = np.linspace(0, 2 * np.pi, 7)
+    x = radius * np.cos(angles)
+    y = radius * np.sin(angles)
+
+    return x, y
+
 if __name__ == "__main__":
     p = (1, 2)
     a = (0, 0)
