@@ -29,12 +29,12 @@ step_time_path = os.path.join(folder_path, "运行时间和迭代步数.csv")
 time_step_data = []
 
 # safe parameter
-NEIGHBOUR_SAFE = 0.5
-OBS_SAFE = 1.0
+NEIGHBOUR_SAFE = 0.1
+OBS_SAFE = 0.3
 
 # 設定Leader初始位置和目標位置
 P_l_start = np.array([0, 0, 0])
-P_l_goal = np.array([15, 15, 15])
+P_l_goal = np.array([5.0, 5.0, 2.0])
 
 # 隨機設置Follower的初始位置
 f1_random = random.uniform(-2, -1)
@@ -51,18 +51,18 @@ P_f2_f1_start = np.array([f2_f1_random, 0.0, 0])
 P_f2_f2_start = np.array([f2_f2_random, 0.0, 0])
 
 # 定義向量以形成編隊
-d1 = np.array([-1.0, -1.0, -0.5])
-d2 = np.array([1.0, -1.0, -0.5])
+d1 = np.array([-0.1, -0.175, 0.0])
+d2 = np.array([0.1, -0.175, 0.0])
 
-f_d1 = np.array([-0.5, -0.5, -0.25])
-f_d2 = np.array([0.5, -0.5, -0.25])
+f_d1 = np.array([-0.1, -0.175, 0.0])
+f_d2 = np.array([0.1, -0.175, 0.0])
 
-obs1_x = random.uniform(4, 7)
+obs1_x = random.uniform(1.5, 2.0)
 obs1_y = obs1_x
-obs1_z = obs1_x
-obs2_x = random.uniform(9, 12)
+obs1_z = 1.0
+obs2_x = random.uniform(2.5, 3.0)
 obs2_y = obs2_x
-obs2_z = obs2_x
+obs2_z = 2.0
 # 设置球形障碍物的中心和半径, 下面这是两个障碍物的参数，前三位是x,y,z,第四位是r
 obstacles = [[obs1_x, obs1_y, obs1_z, OBS_SAFE],
              [obs2_x, obs2_y, obs2_z, OBS_SAFE]]
@@ -75,7 +75,7 @@ obstacles_new = np.array(obs)
 print(f"P_l_start:{P_l_start} P_l_goal:{P_l_goal}")
 time_start = time.time()
 P_l_traj, step = NMPCLeader(P_l_start, P_l_goal, obstacles_new)
-time_step_data.append(["{:3f}".format(time.time()-time_start), step])
+time_step_data.append(["{:3f}".format(time.time() - time_start), step])
 
 # 延遲兩秒後計算mpc2，讓Follower跟隨Leader
 time.sleep(0.5)
@@ -84,47 +84,48 @@ time.sleep(0.5)
 print(f"P_f1_start:{P_f1_start} P_f1_goal:{P_l_goal + d1}")
 time_start = time.time()
 P_f1_traj, step = NMPCFollower(P_f1_start, P_l_goal + d1, P_l_traj, d1,
-                         np.empty((3, 0)), obstacles_new, NEIGHBOUR_SAFE,
-                         OBS_SAFE, True)
-time_step_data.append(["{:3f}".format(time.time()-time_start), step])
+                               np.empty((3, 0)), obstacles_new, NEIGHBOUR_SAFE,
+                               OBS_SAFE, True)
+time_step_data.append(["{:3f}".format(time.time() - time_start), step])
 
 print(f"P_f2_start:{P_f2_start} P_f2_goal:{P_l_goal + d2}")
 time_start = time.time()
-P_f2_traj, step = NMPCFollower(P_f2_start, P_l_goal + d2, P_l_traj, d2, P_f1_traj,
-                         obstacles_new, NEIGHBOUR_SAFE, OBS_SAFE, True)
-time_step_data.append(["{:3f}".format(time.time()-time_start), step])
+P_f2_traj, step = NMPCFollower(P_f2_start, P_l_goal + d2, P_l_traj, d2,
+                               P_f1_traj, obstacles_new, NEIGHBOUR_SAFE,
+                               OBS_SAFE, True)
+time_step_data.append(["{:3f}".format(time.time() - time_start), step])
 
 # 计算F1_f1和F1_f2的轨迹
 print(f"P_f1_f1_start:{P_f1_f1_start} P_f1_f1_goal:{P_l_goal + d1 + f_d1}")
 time_start = time.time()
 P_f1_f1_traj, step = NMPCFollower(P_f1_f1_start,
-                            P_l_goal + d1 + f_d1, P_f1_traj, f_d1,
-                            np.empty((3, 0)), obstacles_new, NEIGHBOUR_SAFE,
-                            OBS_SAFE)
-time_step_data.append(["{:3f}".format(time.time()-time_start), step])
+                                  P_l_goal + d1 + f_d1, P_f1_traj, f_d1,
+                                  np.empty((3, 0)), obstacles_new,
+                                  NEIGHBOUR_SAFE, OBS_SAFE)
+time_step_data.append(["{:3f}".format(time.time() - time_start), step])
 
 print(f"P_f1_f2_start:{P_f1_f2_start} P_f1_f2_goal:{P_l_goal + d1 + f_d2}")
 time_start = time.time()
-P_f1_f2_traj, step = NMPCFollower(P_f1_f2_start, P_l_goal + d1 + f_d2, P_f1_traj,
-                            f_d2, P_f1_f1_traj, obstacles_new, NEIGHBOUR_SAFE,
-                            OBS_SAFE)
-time_step_data.append(["{:3f}".format(time.time()-time_start), step])
+P_f1_f2_traj, step = NMPCFollower(P_f1_f2_start, P_l_goal + d1 + f_d2,
+                                  P_f1_traj, f_d2, P_f1_f1_traj, obstacles_new,
+                                  NEIGHBOUR_SAFE, OBS_SAFE)
+time_step_data.append(["{:3f}".format(time.time() - time_start), step])
 
 # 计算F1_f1和F1_f2的轨迹
 print(f"P_f2_f1_start:{P_f2_f1_start} P_f2_f1_goal:{P_l_goal + d2 + f_d1}")
 time_start = time.time()
 P_f2_f1_traj, step = NMPCFollower(P_f2_f1_start,
-                            P_l_goal + d2 + f_d1, P_f2_traj, f_d1,
-                            np.empty((3, 0)), obstacles_new, NEIGHBOUR_SAFE,
-                            OBS_SAFE)
-time_step_data.append(["{:3f}".format(time.time()-time_start), step])
+                                  P_l_goal + d2 + f_d1, P_f2_traj, f_d1,
+                                  np.empty((3, 0)), obstacles_new,
+                                  NEIGHBOUR_SAFE, OBS_SAFE)
+time_step_data.append(["{:3f}".format(time.time() - time_start), step])
 
 print(f"P_f2_f2_start:{P_f2_f2_start} P_f2_f2_goal:{P_l_goal + d2 + f_d2}")
 time_start = time.time()
-P_f2_f2_traj, step = NMPCFollower(P_f2_f2_start, P_l_goal + d2 + f_d2, P_f2_traj,
-                            f_d2, P_f2_f1_traj, obstacles_new, NEIGHBOUR_SAFE,
-                            OBS_SAFE)
-time_step_data.append(["{:3f}".format(time.time()-time_start), step])
+P_f2_f2_traj, step = NMPCFollower(P_f2_f2_start, P_l_goal + d2 + f_d2,
+                                  P_f2_traj, f_d2, P_f2_f1_traj, obstacles_new,
+                                  NEIGHBOUR_SAFE, OBS_SAFE)
+time_step_data.append(["{:3f}".format(time.time() - time_start), step])
 
 # 計算Follower的終點，定義為全局變數
 P_f1_end = P_f1_traj[:, -1]  # Follower1 的終點
@@ -191,59 +192,66 @@ leader_pose = {
 df = pd.DataFrame(leader_pose)
 df.to_csv(traj_csv_path, index=False)
 
-start_end_data = [
-    [
-        P_l_start[0],P_l_start[1],P_l_start[2],
-        P_l_traj_interpolated[0, num_frames_interpolated-1],
-        P_l_traj_interpolated[1, num_frames_interpolated-1],
-        P_l_traj_interpolated[2, num_frames_interpolated-1]
-    ],
-    [
-        P_f1_start[0], P_f1_start[1], P_f1_start[2], 
-        P_f1_traj_interpolated[0, num_frames_interpolated-1], 
-        P_f1_traj_interpolated[1, num_frames_interpolated-1], 
-        P_f1_traj_interpolated[2, num_frames_interpolated-1]
-    ],
-    [
-        P_f2_start[0], P_f2_start[1], P_f2_start[2], 
-        P_f2_traj_interpolated[0, num_frames_interpolated-1], 
-        P_f2_traj_interpolated[1, num_frames_interpolated-1], 
-        P_f2_traj_interpolated[2, num_frames_interpolated-1]
-    ],
-        [
-        P_f1_f1_start[0], P_f1_f1_start[1], P_f1_f1_start[2], 
-        P_f1_f1_traj_interpolated[0, num_frames_interpolated-1], 
-        P_f1_f1_traj_interpolated[1, num_frames_interpolated-1], 
-        P_f1_f1_traj_interpolated[2, num_frames_interpolated-1]
-    ],
-    [
-        P_f1_f2_start[0], P_f1_f2_start[1], P_f1_f2_start[2], 
-        P_f1_f2_traj_interpolated[0, num_frames_interpolated-1], 
-        P_f1_f2_traj_interpolated[1, num_frames_interpolated-1], 
-        P_f1_f2_traj_interpolated[2, num_frames_interpolated-1]
-    ],
-    [
-        P_f2_f1_start[0], P_f2_f1_start[1], P_f2_f1_start[2], 
-        P_f2_f1_traj_interpolated[0, num_frames_interpolated-1], 
-        P_f2_f1_traj_interpolated[1, num_frames_interpolated-1], 
-        P_f2_f1_traj_interpolated[2, num_frames_interpolated-1]
-    ],
-    [
-        P_f2_f2_start[0], P_f2_f2_start[1], P_f2_f2_start[2], 
-        P_f2_f2_traj_interpolated[0, num_frames_interpolated-1], 
-        P_f2_f2_traj_interpolated[1, num_frames_interpolated-1], 
-        P_f2_f2_traj_interpolated[2, num_frames_interpolated-1]
-    ]
-]
-start_end_data.insert(0, ["start_x","start_y","start_z","end_x","end_y","end_z"])
+start_end_data = [[
+    P_l_start[0], P_l_start[1], P_l_start[2],
+    P_l_traj_interpolated[0, num_frames_interpolated - 1],
+    P_l_traj_interpolated[1, num_frames_interpolated - 1],
+    P_l_traj_interpolated[2, num_frames_interpolated - 1]
+],
+                  [
+                      P_f1_start[0], P_f1_start[1], P_f1_start[2],
+                      P_f1_traj_interpolated[0, num_frames_interpolated - 1],
+                      P_f1_traj_interpolated[1, num_frames_interpolated - 1],
+                      P_f1_traj_interpolated[2, num_frames_interpolated - 1]
+                  ],
+                  [
+                      P_f2_start[0], P_f2_start[1], P_f2_start[2],
+                      P_f2_traj_interpolated[0, num_frames_interpolated - 1],
+                      P_f2_traj_interpolated[1, num_frames_interpolated - 1],
+                      P_f2_traj_interpolated[2, num_frames_interpolated - 1]
+                  ],
+                  [
+                      P_f1_f1_start[0], P_f1_f1_start[1], P_f1_f1_start[2],
+                      P_f1_f1_traj_interpolated[0,
+                                                num_frames_interpolated - 1],
+                      P_f1_f1_traj_interpolated[1,
+                                                num_frames_interpolated - 1],
+                      P_f1_f1_traj_interpolated[2, num_frames_interpolated - 1]
+                  ],
+                  [
+                      P_f1_f2_start[0], P_f1_f2_start[1], P_f1_f2_start[2],
+                      P_f1_f2_traj_interpolated[0,
+                                                num_frames_interpolated - 1],
+                      P_f1_f2_traj_interpolated[1,
+                                                num_frames_interpolated - 1],
+                      P_f1_f2_traj_interpolated[2, num_frames_interpolated - 1]
+                  ],
+                  [
+                      P_f2_f1_start[0], P_f2_f1_start[1], P_f2_f1_start[2],
+                      P_f2_f1_traj_interpolated[0,
+                                                num_frames_interpolated - 1],
+                      P_f2_f1_traj_interpolated[1,
+                                                num_frames_interpolated - 1],
+                      P_f2_f1_traj_interpolated[2, num_frames_interpolated - 1]
+                  ],
+                  [
+                      P_f2_f2_start[0], P_f2_f2_start[1], P_f2_f2_start[2],
+                      P_f2_f2_traj_interpolated[0,
+                                                num_frames_interpolated - 1],
+                      P_f2_f2_traj_interpolated[1,
+                                                num_frames_interpolated - 1],
+                      P_f2_f2_traj_interpolated[2, num_frames_interpolated - 1]
+                  ]]
+start_end_data.insert(
+    0, ["start_x", "start_y", "start_z", "end_x", "end_y", "end_z"])
 with open(l_f_loc_path, 'w', newline='', encoding='utf-8') as csvfile:
     writer = csv.writer(csvfile)
     for row in start_end_data:
         writer.writerow(row)  # 写入一行数据
 
 obstacles_data = [[obs1_x, obs1_y, obs1_z, OBS_SAFE],
-             [obs2_x, obs2_y, obs2_z, OBS_SAFE]]
-obstacles_data.insert(0, ["obs_x","obs_y","obs_z","obs_r"])
+                  [obs2_x, obs2_y, obs2_z, OBS_SAFE]]
+obstacles_data.insert(0, ["obs_x", "obs_y", "obs_z", "obs_r"])
 with open(obs_loc_path, 'w', newline='', encoding='utf-8') as csvfile:
     writer = csv.writer(csvfile)
     for row in obstacles_data:

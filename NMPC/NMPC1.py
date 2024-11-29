@@ -12,7 +12,7 @@ Qc = 5.0
 kappa = 4.0
 
 # ego vehicle parameter
-ROBOT_RADIUS = 0.5
+ROBOT_RADIUS = 0.3
 
 # ego motion parameter
 VMAX = 4

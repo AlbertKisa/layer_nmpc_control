@@ -62,10 +62,10 @@ d6 = np.array([x[5], y[5], 0.0])
 
 obs1_x = random.uniform(1.5, 2.0)
 obs1_y = obs1_x
-obs1_z = obs1_x
+obs1_z = 0.5
 obs2_x = random.uniform(2.5, 3.0)
 obs2_y = obs2_x
-obs2_z = obs2_x
+obs2_z = 0.5
 # 设置球形障碍物的中心和半径, 下面这是两个障碍物的参数，前三位是x,y,z,第四位是r
 obstacles = [[obs1_x, obs1_y, obs1_z, OBS_SAFE],
              [obs2_x, obs2_y, obs2_z, OBS_SAFE]]
