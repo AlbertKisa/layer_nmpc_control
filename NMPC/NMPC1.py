@@ -105,6 +105,7 @@ def NMPCLeader(start_pose, goal_pose, obstacles):
         (robot_state_history, start_pose.reshape(-1, 1)))
 
     final_step = 0
+    vel_list = []
     for i in range(NUMBER_OF_TIMESTEPS):
         dis_to_goal = np.linalg.norm(goal_pose - robot_state)
         upper_bound = upper_bound_default
@@ -121,6 +122,7 @@ def NMPCLeader(start_pose, goal_pose, obstacles):
         vel, velocity_profile = ComputeVelocity(robot_state, obstacles,
                                                 ref_path, lower_bound,
                                                 upper_bound)
+        vel_list.append(vel.tolist()+[np.linalg.norm(vel)])
         robot_state = UpdateState(robot_state, vel, TIMESTEP)
 
         robot_state_history = np.hstack(
@@ -129,7 +131,7 @@ def NMPCLeader(start_pose, goal_pose, obstacles):
             print("final distance to goal:", dis_to_goal)
             break
 
-    return robot_state_history, i
+    return robot_state_history, final_step, vel_list, dis_to_goal
 
 
 if __name__ == "__main__":
