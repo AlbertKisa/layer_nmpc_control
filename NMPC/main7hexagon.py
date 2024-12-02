@@ -31,7 +31,7 @@ time_step_data = []
 
 # safe parameter
 NEIGHBOUR_SAFE = 0.1
-OBS_SAFE = 0.3
+OBS_SAFE = 0.2
 
 # 設定Leader初始位置和目標位置
 P_l_start = np.array([0, 0, 0])
@@ -77,7 +77,7 @@ obstacles_new = np.array(obs)
 # 計算Leader的軌跡
 print(f"P_l_start:{P_l_start} P_l_goal:{P_l_goal}")
 time_start = time.time()
-P_l_traj, step = NMPCLeader(P_l_start, P_l_goal, obstacles_new)
+P_l_traj, step = NMPCLeader(P_l_start, P_l_goal, obstacles_new, OBS_SAFE)
 time_step_data.append(["{:3f}".format(time.time() - time_start), step])
 
 # 計算Follower1的轨迹
