@@ -17,6 +17,11 @@ alpha = 5.
 # ego motion parameter
 VMAX = 4
 
+# weight
+tracking_weight = 2.0
+collsion_weight = 1.1
+over_height_weight = 1.5
+
 # nmpc parameter
 HORIZON_LENGTH = int(4)
 NMPC_TIMESTEP = 0.3
@@ -57,6 +62,31 @@ def TatalCollisionCost(path_robot, dynamic_obstacles, static_obstacles,
     return total_cost
 
 
+def OverZlimitCost(p_robot, z_limits):
+    cost = 0.0
+    if p_robot[-1] > z_limits[-1]:
+        cost += 1.0
+    if p_robot[-1] < z_limits[0]:
+        cost += 1.0
+
+    ground_proximity_cost = 0.1 / (p_robot[-1] - z_limits[0] + 0.1)  # 避免除以零
+    cost += ground_proximity_cost
+
+    ceiling_proximity_cost = 0.1 / (z_limits[-1] - p_robot[-1] + 0.1)
+    cost += ceiling_proximity_cost
+
+    return cost
+
+
+def TotalOverZlimitCost(path_robot, z_limits):
+    total_cost = 0.0
+    for i in range(HORIZON_LENGTH):
+        p_rob = path_robot[3 * i:3 * i + 3]
+        total_cost += OverZlimitCost(p_rob, z_limits)
+
+    return total_cost
+
+
 def UpdateState(x0, u, timestep):
     """
     Computes the states of the system after applying a sequence of control signals u on
@@ -72,17 +102,21 @@ def UpdateState(x0, u, timestep):
 
 
 def TotalCost(u, robot_state, dynamic_obs, static_obs, dynamic_obs_safe_dis,
-              static_obs_safe_dis, xref):
+              static_obs_safe_dis, xref, z_limits):
     p_robot = UpdateState(robot_state, u, NMPC_TIMESTEP)
-    c1 = TrackingCost(p_robot, xref)
+    c1 = TrackingCost(p_robot, xref) * tracking_weight
     c2 = TatalCollisionCost(p_robot, dynamic_obs, static_obs,
-                            dynamic_obs_safe_dis, static_obs_safe_dis)
-    total = c1 + c2
+                            dynamic_obs_safe_dis,
+                            static_obs_safe_dis) * collsion_weight
+    c3 = TotalOverZlimitCost(p_robot, z_limits) * over_height_weight
+
+    total = c1 + c2 + c3
     return total
 
 
 def ComputeVelocity(robot_state, neighbor_traj, static_obs, neighbor_safe_dis,
-                    avoid_static_obs_dis, xref, lower_bound, upper_bound):
+                    avoid_static_obs_dis, xref, lower_bound, upper_bound,
+                    z_limits):
     """
     Computes control velocity of the copter
     """
@@ -90,7 +124,8 @@ def ComputeVelocity(robot_state, neighbor_traj, static_obs, neighbor_safe_dis,
 
     def CostFn(u):
         return TotalCost(u, robot_state, neighbor_traj, static_obs,
-                         neighbor_safe_dis, avoid_static_obs_dis, xref)
+                         neighbor_safe_dis, avoid_static_obs_dis, xref,
+                         z_limits)
 
     bounds = Bounds(lower_bound, upper_bound)
 
@@ -152,6 +187,7 @@ def NMPCFollower(start_pose,
                  obstacles,
                  neighbour_safe_dis,
                  avoid_obs_safe_dis,
+                 z_limits,
                  use_debug=False):
     robot_state = start_pose
     robot_state_history = np.empty((3, 0))
@@ -186,8 +222,9 @@ def NMPCFollower(start_pose,
         vel, velocity_profile = ComputeVelocity(robot_state, neighbour_traj,
                                                 obstacles, neighbour_safe_dis,
                                                 avoid_obs_safe_dis, ref_path,
-                                                lower_bound, upper_bound)
-        vel_list.append(vel.tolist()+[np.linalg.norm(vel)])
+                                                lower_bound, upper_bound,
+                                                z_limits)
+        vel_list.append(vel.tolist() + [np.linalg.norm(vel)])
         if use_debug:
             print(f"vel:{vel}")
 

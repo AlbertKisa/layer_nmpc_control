@@ -38,8 +38,8 @@ OBS_SAFE = 0.2
 
 # 設定Leader初始位置和目標位置
 P_l_start = np.array([0, 0, 0])
-P_l_goal = np.array([5.0, 5.0, 2.0])
-z_limits = np.array([0.0, 2.1])
+P_l_goal = np.array([5.0, 5.0, 1.5])
+z_limits = np.array([0.0, 2.0])
 
 # 隨機設置Follower的初始位置
 f1_random = random.uniform(-2, -1)
@@ -64,10 +64,10 @@ f_d2 = np.array([0.1, -0.175, 0.0])
 
 obs1_x = random.uniform(1.5, 2.0)
 obs1_y = obs1_x
-obs1_z = 1.0
+obs1_z = 0.5
 obs2_x = random.uniform(2.5, 3.0)
 obs2_y = obs2_x
-obs2_z = 2.0
+obs2_z = 0.5
 # 设置球形障碍物的中心和半径, 下面这是两个障碍物的参数，前三位是x,y,z,第四位是r
 obstacles = [[obs1_x, obs1_y, obs1_z, OBS_SAFE],
              [obs2_x, obs2_y, obs2_z, OBS_SAFE]]
@@ -96,7 +96,7 @@ P_f1_traj, step, vel, dis_to_goal = NMPCFollower(P_f1_start,
                                                  P_l_goal + d1, P_l_traj, d1,
                                                  np.empty((3, 0)),
                                                  obstacles_new, NEIGHBOUR_SAFE,
-                                                 OBS_SAFE, True)
+                                                 OBS_SAFE, z_limits, True)
 time_step_data.append(["{:3f}".format(time.time() - time_start), step])
 vel_list = [vel1 + vel2 for vel1, vel2 in zip(vel_list, vel)]
 dis_to_goal_list.append(dis_to_goal)
@@ -106,7 +106,7 @@ time_start = time.time()
 P_f2_traj, step, vel, dis_to_goal = NMPCFollower(P_f2_start, P_l_goal + d2,
                                                  P_l_traj, d2, P_f1_traj,
                                                  obstacles_new, NEIGHBOUR_SAFE,
-                                                 OBS_SAFE, True)
+                                                 OBS_SAFE, z_limits, True)
 time_step_data.append(["{:3f}".format(time.time() - time_start), step])
 vel_list = [vel1 + vel2 for vel1, vel2 in zip(vel_list, vel)]
 dis_to_goal_list.append(dis_to_goal)
@@ -119,7 +119,8 @@ P_f1_f1_traj, step, vel, dis_to_goal = NMPCFollower(P_f1_f1_start,
                                                     P_f1_traj, f_d1,
                                                     np.empty(
                                                         (3, 0)), obstacles_new,
-                                                    NEIGHBOUR_SAFE, OBS_SAFE)
+                                                    NEIGHBOUR_SAFE, OBS_SAFE,
+                                                    z_limits)
 time_step_data.append(["{:3f}".format(time.time() - time_start), step])
 vel_list = [vel1 + vel2 for vel1, vel2 in zip(vel_list, vel)]
 dis_to_goal_list.append(dis_to_goal)
@@ -128,7 +129,7 @@ print(f"P_f1_f2_start:{P_f1_f2_start} P_f1_f2_goal:{P_l_goal + d1 + f_d2}")
 time_start = time.time()
 P_f1_f2_traj, step, vel, dis_to_goal = NMPCFollower(
     P_f1_f2_start, P_l_goal + d1 + f_d2, P_f1_traj, f_d2, P_f1_f1_traj,
-    obstacles_new, NEIGHBOUR_SAFE, OBS_SAFE)
+    obstacles_new, NEIGHBOUR_SAFE, OBS_SAFE, z_limits)
 time_step_data.append(["{:3f}".format(time.time() - time_start), step])
 vel_list = [vel1 + vel2 for vel1, vel2 in zip(vel_list, vel)]
 dis_to_goal_list.append(dis_to_goal)
@@ -141,7 +142,8 @@ P_f2_f1_traj, step, vel, dis_to_goal = NMPCFollower(P_f2_f1_start,
                                                     P_f2_traj, f_d1,
                                                     np.empty(
                                                         (3, 0)), obstacles_new,
-                                                    NEIGHBOUR_SAFE, OBS_SAFE)
+                                                    NEIGHBOUR_SAFE, OBS_SAFE,
+                                                    z_limits)
 time_step_data.append(["{:3f}".format(time.time() - time_start), step])
 vel_list = [vel1 + vel2 for vel1, vel2 in zip(vel_list, vel)]
 dis_to_goal_list.append(dis_to_goal)
@@ -150,7 +152,7 @@ print(f"P_f2_f2_start:{P_f2_f2_start} P_f2_f2_goal:{P_l_goal + d2 + f_d2}")
 time_start = time.time()
 P_f2_f2_traj, step, vel, dis_to_goal = NMPCFollower(
     P_f2_f2_start, P_l_goal + d2 + f_d2, P_f2_traj, f_d2, P_f2_f1_traj,
-    obstacles_new, NEIGHBOUR_SAFE, OBS_SAFE)
+    obstacles_new, NEIGHBOUR_SAFE, OBS_SAFE, z_limits)
 time_step_data.append(["{:3f}".format(time.time() - time_start), step])
 vel_list = [vel1 + vel2 for vel1, vel2 in zip(vel_list, vel)]
 dis_to_goal_list.append(dis_to_goal)
@@ -358,9 +360,9 @@ z1_a = obstacles[1][2] + obstacles[1][-1] * np.outer(np.ones(
 # 設置動畫
 fig = plt.figure(figsize=(10, 8))
 ax = fig.add_subplot(111, projection='3d')
-ax.set_xlim([-5, 15])
-ax.set_ylim([-5, 15])
-ax.set_zlim([-5, 15])
+ax.set_xlim([-2, 8])
+ax.set_ylim([-2, 8])
+ax.set_zlim([-2, 8])
 
 # 绘制障碍物
 ax.plot_surface(x0_a, y0_a, z0_a, color='b', alpha=0.6)  # 使用半透明的蓝色

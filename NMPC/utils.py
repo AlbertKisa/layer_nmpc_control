@@ -25,6 +25,7 @@ def GenerateHexagonVertices(radius=1.0):
 
     return x, y
 
+
 if __name__ == "__main__":
     p = (1, 2)
     a = (0, 0)
