@@ -35,7 +35,9 @@ OBS_SAFE = 0.2
 
 # 設定Leader初始位置和目標位置
 P_l_start = np.array([0, 0, 0])
-P_l_goal = np.array([5.0, 5.0, 2.0])
+P_l_goal = np.array([5.0, 5.0, 1.5])
+
+z_limits = np.array([0.0, 2.0])
 
 # 生成正六边形的向量
 radius = 0.25
@@ -77,55 +79,66 @@ obstacles_new = np.array(obs)
 # 計算Leader的軌跡
 print(f"P_l_start:{P_l_start} P_l_goal:{P_l_goal}")
 time_start = time.time()
-P_l_traj, step = NMPCLeader(P_l_start, P_l_goal, obstacles_new, OBS_SAFE)
+P_l_traj, step, vel, dis_to_goal = NMPCLeader(P_l_start, P_l_goal,
+                                              obstacles_new, OBS_SAFE,
+                                              z_limits)
 time_step_data.append(["{:3f}".format(time.time() - time_start), step])
 
 # 計算Follower1的轨迹
 print(f"P_f1_start:{P_f1_start} P_f1_goal:{P_l_goal + d1}")
 time_start = time.time()
-P_f1_traj, step = NMPCFollower(P_f1_start, P_l_goal + d1, P_l_traj, d1,
-                               np.empty((3, 0)), obstacles_new, NEIGHBOUR_SAFE,
-                               OBS_SAFE)
+P_f1_traj, step, vel, dis_to_goal = NMPCFollower(P_f1_start,
+                                                 P_l_goal + d1, P_l_traj, d1,
+                                                 np.empty((3, 0)),
+                                                 obstacles_new, NEIGHBOUR_SAFE,
+                                                 OBS_SAFE, z_limits)
 time_step_data.append(["{:3f}".format(time.time() - time_start), step])
 
 # 計算Follower2的轨迹
 print(f"P_f2_start:{P_f2_start} P_f2_goal:{P_l_goal + d2}")
 time_start = time.time()
-P_f2_traj, step = NMPCFollower(P_f2_start, P_l_goal + d2, P_l_traj, d2,
-                               P_f1_traj, obstacles_new, NEIGHBOUR_SAFE,
-                               OBS_SAFE)
+P_f2_traj, step, vel, dis_to_goal = NMPCFollower(P_f2_start, P_l_goal + d2,
+                                                 P_l_traj, d2, P_f1_traj,
+                                                 obstacles_new, NEIGHBOUR_SAFE,
+                                                 OBS_SAFE, z_limits)
 time_step_data.append(["{:3f}".format(time.time() - time_start), step])
 
 # 計算Follower3的轨迹
 print(f"P_f3_start:{P_f3_start} P_f3_goal:{P_l_goal + d3}")
 time_start = time.time()
-P_f3_traj, step = NMPCFollower(P_f3_start, P_l_goal + d3, P_l_traj, d3,
-                               np.empty((3, 0)), obstacles_new, NEIGHBOUR_SAFE,
-                               OBS_SAFE)
+P_f3_traj, step, vel, dis_to_goal = NMPCFollower(P_f3_start,
+                                                 P_l_goal + d3, P_l_traj, d3,
+                                                 np.empty((3, 0)),
+                                                 obstacles_new, NEIGHBOUR_SAFE,
+                                                 OBS_SAFE, z_limits)
 time_step_data.append(["{:3f}".format(time.time() - time_start), step])
 
 # 計算Follower4的轨迹
 print(f"P_f4_start:{P_f4_start} P_f4_goal:{P_l_goal + d4}")
 time_start = time.time()
-P_f4_traj, step = NMPCFollower(P_f4_start, P_l_goal + d4, P_l_traj, d4,
-                               P_f3_traj, obstacles_new, NEIGHBOUR_SAFE,
-                               OBS_SAFE)
+P_f4_traj, step, vel, dis_to_goal = NMPCFollower(P_f4_start, P_l_goal + d4,
+                                                 P_l_traj, d4, P_f3_traj,
+                                                 obstacles_new, NEIGHBOUR_SAFE,
+                                                 OBS_SAFE, z_limits)
 time_step_data.append(["{:3f}".format(time.time() - time_start), step])
 
 # 計算Follower5的轨迹
 print(f"P_f5_start:{P_f5_start} P_f5_goal:{P_l_goal + d5}")
 time_start = time.time()
-P_f5_traj, step = NMPCFollower(P_f5_start, P_l_goal + d5, P_l_traj, d5,
-                               np.empty((3, 0)), obstacles_new, NEIGHBOUR_SAFE,
-                               OBS_SAFE)
+P_f5_traj, step, vel, dis_to_goal = NMPCFollower(P_f5_start,
+                                                 P_l_goal + d5, P_l_traj, d5,
+                                                 np.empty((3, 0)),
+                                                 obstacles_new, NEIGHBOUR_SAFE,
+                                                 OBS_SAFE, z_limits)
 time_step_data.append(["{:3f}".format(time.time() - time_start), step])
 
 # 計算Follower6的轨迹
 print(f"P_f6_start:{P_f6_start} P_f6_goal:{P_l_goal + d6}")
 time_start = time.time()
-P_f6_traj, step = NMPCFollower(P_f6_start, P_l_goal + d6, P_f2_traj, d6,
-                               P_f5_traj, obstacles_new, NEIGHBOUR_SAFE,
-                               OBS_SAFE)
+P_f6_traj, step, vel, dis_to_goal = NMPCFollower(P_f6_start, P_l_goal + d6,
+                                                 P_f2_traj, d6, P_f5_traj,
+                                                 obstacles_new, NEIGHBOUR_SAFE,
+                                                 OBS_SAFE, z_limits)
 time_step_data.append(["{:3f}".format(time.time() - time_start), step])
 
 # 計算Follower的終點，定義為全局變數
