@@ -51,6 +51,31 @@ def GenerateRhombusFromFront(front, size):
     return vertices
 
 
+def GeneratePyramid(vertex, side_length):
+    """
+    根据顶点坐标和边长生成金字塔的5个点坐标
+    :param vertex: 金字塔的顶点坐标 (x, y, z)
+    :param side_length: 底面正方形的边长
+    :return: 金字塔的所有顶点坐标
+    """
+    vx, vy, vz = vertex
+    # 底面中心的坐标
+    base_center = np.array([vx, vy, vz - side_length])
+
+    # 计算底面四个顶点
+    half_side = side_length / 2
+    base_vertices = np.array([
+        base_center + [half_side, half_side, 0],  # 右前
+        base_center + [-half_side, half_side, 0],  # 左前
+        base_center + [-half_side, -half_side, 0],  # 左后
+        base_center + [half_side, -half_side, 0],  # 右后
+    ])
+
+    # 返回顶点和底面四点
+    vertices = np.vstack([vertex, base_vertices])
+    return vertices
+
+
 def plot_3d_rhombus(vertices):
     """
     绘制立体菱形
@@ -89,6 +114,44 @@ def plot_3d_rhombus(vertices):
     ax.set_zlabel('Z')
 
     plt.title('3D Rhombus')
+    plt.show()
+
+
+def plot_pyramid(vertices):
+    """
+    绘制金字塔
+    :param vertices: 金字塔的顶点坐标 (5x3)
+    """
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+
+    # 顶点
+    ax.scatter(vertices[:, 0], vertices[:, 1], vertices[:, 2], c='r')
+
+    # 边
+    edges = [
+        [vertices[0], vertices[1]],  # 顶点 -> 右前
+        [vertices[0], vertices[2]],  # 顶点 -> 左前
+        [vertices[0], vertices[3]],  # 顶点 -> 左后
+        [vertices[0], vertices[4]],  # 顶点 -> 右后
+        [vertices[1], vertices[2]],  # 底面边
+        [vertices[2], vertices[3]],
+        [vertices[3], vertices[4]],
+        [vertices[4], vertices[1]],
+    ]
+
+    for edge in edges:
+        ax.plot(*zip(*edge), color='b')
+
+    # 底面
+    bottom_face = [vertices[1], vertices[2], vertices[3], vertices[4]]
+    ax.add_collection3d(
+        Poly3DCollection([bottom_face], alpha=0.3, color='cyan'))
+
+    # 设置轴标签和范围
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
     plt.show()
 
 
