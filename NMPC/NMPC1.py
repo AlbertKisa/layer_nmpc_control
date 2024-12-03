@@ -169,7 +169,7 @@ def NMPCLeader(start_pose, goal_pose, obstacles, static_safe_dis, z_limits):
         if dis_to_goal >= 1.0 and dis_to_goal < 10.0:
             upper_bound = [0.5] * HORIZON_LENGTH * 3
             lower_bound = [-0.5] * HORIZON_LENGTH * 3
-        if dis_to_goal < 0.5:
+        if dis_to_goal < 1.0:
             upper_bound = [0.1] * HORIZON_LENGTH * 3
             lower_bound = [-0.1] * HORIZON_LENGTH * 3
         final_step = i
@@ -184,7 +184,7 @@ def NMPCLeader(start_pose, goal_pose, obstacles, static_safe_dis, z_limits):
 
         robot_state_history = np.hstack(
             (robot_state_history, robot_state.reshape(-1, 1)))
-        if dis_to_goal < 0.1:
+        if dis_to_goal < 0.05:
             print("final_step:", final_step, "final distance to goal:",
                   dis_to_goal)
             break
