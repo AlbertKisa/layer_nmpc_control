@@ -216,10 +216,10 @@ def set_axes_equal(ax):
 
 
 if __name__ == "__main__":
-    start_pose = np.array([0, 0, 0.0])
-    goal_pose = np.array([5.0, 5.0, 2.0])
-    obstacles = np.array([[2.0, 2.0, 1.0], [3.0, 3.0, 0.5]])
-    z_limits = np.array([0.0, 2.5])
+    start_pose = np.array([0, 0, 1.3])
+    goal_pose = np.array([5.0, 5.0, 1.3])
+    obstacles = np.array([[1.8, 1.8, 1.2], [3.7, 3.7, 1.5]])
+    z_limits = np.array([0.4, 1.8])
     obs_rad = 0.2
     path, final_step, val, dis = NMPCLeader(start_pose, goal_pose, obstacles,
                                             obs_rad, z_limits)

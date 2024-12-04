@@ -233,8 +233,8 @@ def NMPCFollower(start_pose,
         robot_state_history = np.hstack(
             (robot_state_history, robot_state.reshape(-1, 1)))
         if dis_to_goal < 0.1:
-            print("final distance to goal:", dis_to_goal)
+            print("final_step:", final_step, "final distance to goal:",
+                  dis_to_goal)
             break
-    print(f"final_step:{final_step}")
 
     return robot_state_history, final_step, vel_list, dis_to_goal
