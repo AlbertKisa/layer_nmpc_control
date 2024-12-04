@@ -21,7 +21,7 @@ smoothness_weight = 1000.0
 VMAX = 1.0
 
 # nmpc parameter
-HORIZON_LENGTH = int(4)
+HORIZON_LENGTH = int(8)
 NMPC_TIMESTEP = 0.3
 upper_bound_default = [(1 / np.sqrt(2)) * VMAX] * HORIZON_LENGTH * 3
 lower_bound_default = [-(1 / np.sqrt(2)) * VMAX] * HORIZON_LENGTH * 3
@@ -184,7 +184,7 @@ def NMPCLeader(start_pose, goal_pose, obstacles, static_safe_dis, z_limits):
 
         robot_state_history = np.hstack(
             (robot_state_history, robot_state.reshape(-1, 1)))
-        if dis_to_goal < 0.05:
+        if dis_to_goal < 0.1:
             print("final_step:", final_step, "final distance to goal:",
                   dis_to_goal)
             break

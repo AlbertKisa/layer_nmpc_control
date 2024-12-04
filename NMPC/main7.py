@@ -34,12 +34,12 @@ dis_to_goal_list = []
 
 # safe parameter
 NEIGHBOUR_SAFE = 0.1
-OBS_SAFE = 0.2
+OBS_SAFE = 0.10
 
 # 設定Leader初始位置和目標位置
-P_l_start = np.array([0, 0, 0])
-P_l_goal = np.array([5.0, 5.0, 1.5])
-z_limits = np.array([0.0, 2.0])
+P_l_start = np.array([0, 0, 1.3])
+P_l_goal = np.array([5.0, 5.0, 1.3])
+z_limits = np.array([0.4, 1.8])
 
 # 隨機設置Follower的初始位置
 f1_random = random.uniform(-2, -1)
@@ -48,12 +48,12 @@ f1_f1_random = random.uniform(-4, -3)
 f1_f2_random = random.uniform(-3, -2)
 f2_f1_random = random.uniform(2, 3)
 f2_f2_random = random.uniform(3, 4)
-P_f1_start = np.array([f1_random, 0.0, 0])
-P_f2_start = np.array([f2_random, 0.0, 0])
-P_f1_f1_start = np.array([f1_f1_random, 0.0, 0])
-P_f1_f2_start = np.array([f1_f2_random, 0.0, 0])
-P_f2_f1_start = np.array([f2_f1_random, 0.0, 0])
-P_f2_f2_start = np.array([f2_f2_random, 0.0, 0])
+P_f1_start = np.array([f1_random, 0.0, 1.3])
+P_f2_start = np.array([f2_random, 0.0, 1.3])
+P_f1_f1_start = np.array([f1_f1_random, 0.0, 1.3])
+P_f1_f2_start = np.array([f1_f2_random, 0.0, 1.3])
+P_f2_f1_start = np.array([f2_f1_random, 0.0, 1.3])
+P_f2_f2_start = np.array([f2_f2_random, 0.0, 1.3])
 
 # 定義向量以形成編隊
 d1 = np.array([-0.1, -0.175, 0.0])
@@ -64,10 +64,10 @@ f_d2 = np.array([0.1, -0.175, 0.0])
 
 obs1_x = random.uniform(1.5, 2.0)
 obs1_y = obs1_x
-obs1_z = 0.5
-obs2_x = random.uniform(2.5, 3.0)
+obs1_z = 1.2
+obs2_x = random.uniform(3.5, 4.0)
 obs2_y = obs2_x
-obs2_z = 0.5
+obs2_z = 1.5
 # 设置球形障碍物的中心和半径, 下面这是两个障碍物的参数，前三位是x,y,z,第四位是r
 obstacles = [[obs1_x, obs1_y, obs1_z, OBS_SAFE],
              [obs2_x, obs2_y, obs2_z, OBS_SAFE]]
@@ -360,9 +360,9 @@ z1_a = obstacles[1][2] + obstacles[1][-1] * np.outer(np.ones(
 # 設置動畫
 fig = plt.figure(figsize=(10, 8))
 ax = fig.add_subplot(111, projection='3d')
-ax.set_xlim([-2, 8])
-ax.set_ylim([-2, 8])
-ax.set_zlim([-2, 8])
+ax.set_xlim([-1, 7])
+ax.set_ylim([-1, 7])
+ax.set_zlim([-1.0, 3.0])
 
 # 绘制障碍物
 ax.plot_surface(x0_a, y0_a, z0_a, color='b', alpha=0.6)  # 使用半透明的蓝色
@@ -384,11 +384,6 @@ ax.scatter(P_l_start[0],
            color='red',
            label='Start Point',
            s=100)
-ax.text(P_l_start[0],
-        P_l_start[1],
-        P_l_start[2],
-        f'({P_l_start[0]:.2f}, {P_l_start[1]:.2f}, {P_l_start[2]:.2f})',
-        color='black')
 
 ax.scatter(P_l_goal[0],
            P_l_goal[1],
@@ -409,11 +404,6 @@ ax.scatter(P_f1_start[0],
            color='green',
            label='Follower1 Start',
            s=100)
-ax.text(P_f1_start[0],
-        P_f1_start[1],
-        P_f1_start[2],
-        f'({P_f1_start[0]:.2f}, {P_f1_start[1]:.2f}, {P_f1_start[2]:.2f})',
-        color='black')
 
 ax.scatter(P_f2_start[0],
            P_f2_start[1],
@@ -421,11 +411,6 @@ ax.scatter(P_f2_start[0],
            color='orange',
            label='Follower2 Start',
            s=100)
-ax.text(P_f2_start[0],
-        P_f2_start[1],
-        P_f2_start[2],
-        f'({P_f2_start[0]:.2f}, {P_f2_start[1]:.2f}, {P_f2_start[2]:.2f})',
-        color='black')
 
 ax.scatter(P_f1_f1_start[0],
            P_f1_f1_start[1],
@@ -433,12 +418,6 @@ ax.scatter(P_f1_f1_start[0],
            color='cyan',
            label='Follower1_f1 Start',
            s=100)
-ax.text(
-    P_f1_f1_start[0],
-    P_f1_f1_start[1],
-    P_f1_f1_start[2],
-    f'({P_f1_f1_start[0]:.2f}, {P_f1_f1_start[1]:.2f}, {P_f1_f1_start[2]:.2f})',
-    color='black')
 
 ax.scatter(P_f1_f2_start[0],
            P_f1_f2_start[1],
@@ -446,12 +425,6 @@ ax.scatter(P_f1_f2_start[0],
            color='brown',
            label='Follower1_f2 Start',
            s=100)
-ax.text(
-    P_f1_f2_start[0],
-    P_f1_f2_start[1],
-    P_f1_f2_start[2],
-    f'({P_f1_f2_start[0]:.2f}, {P_f1_f2_start[1]:.2f}, {P_f1_f2_start[2]:.2f})',
-    color='black')
 
 ax.scatter(P_f2_f1_start[0],
            P_f2_f1_start[1],
@@ -459,12 +432,6 @@ ax.scatter(P_f2_f1_start[0],
            color='pink',
            label='Follower2_f1 Start',
            s=100)
-ax.text(
-    P_f2_f1_start[0],
-    P_f2_f1_start[1],
-    P_f2_f1_start[2],
-    f'({P_f2_f1_start[0]:.2f}, {P_f2_f1_start[1]:.2f}, {P_f2_f1_start[2]:.2f})',
-    color='black')
 
 ax.scatter(P_f2_f2_start[0],
            P_f2_f2_start[1],
@@ -472,12 +439,6 @@ ax.scatter(P_f2_f2_start[0],
            color='purple',
            label='Follower2_f1 Start',
            s=100)
-ax.text(
-    P_f2_f2_start[0],
-    P_f2_f2_start[1],
-    P_f2_f2_start[2],
-    f'({P_f2_f2_start[0]:.2f}, {P_f2_f2_start[1]:.2f}, {P_f2_f2_start[2]:.2f})',
-    color='black')
 
 
 # 初始化函數

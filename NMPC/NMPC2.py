@@ -23,7 +23,7 @@ collsion_weight = 1.1
 over_height_weight = 1.5
 
 # nmpc parameter
-HORIZON_LENGTH = int(4)
+HORIZON_LENGTH = int(8)
 NMPC_TIMESTEP = 0.3
 upper_bound_default = [(1 / np.sqrt(2)) * VMAX] * HORIZON_LENGTH * 3
 lower_bound_default = [-(1 / np.sqrt(2)) * VMAX] * HORIZON_LENGTH * 3

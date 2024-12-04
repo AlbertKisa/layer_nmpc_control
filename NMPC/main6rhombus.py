@@ -34,15 +34,13 @@ NEIGHBOUR_SAFE = 0.1
 OBS_SAFE = 0.2
 
 # 設定Leader初始位置和目標位置
-P_l_start = np.array([0, 0, 0.8])
-P_l_goal = np.array([5.0, 5.0, 1.5])
+P_l_start = np.array([0, 0, 1.3])
+P_l_goal = np.array([5.0, 5.0, 1.3])
+z_limits = np.array([0.4, 1.8])
 
-z_limits = np.array([0.0, 2.0])
-
-# 生成正六边形的向量
+# 生成菱形的向量
 size = NEIGHBOUR_SAFE * 2.0
 vertices = GenerateRhombusFromFront(P_l_start, size)
-print(vertices)
 
 # 设置leader初始位置
 l_random = random.uniform
@@ -63,10 +61,10 @@ d5 = vertices[5] - vertices[4]
 
 obs1_x = random.uniform(1.5, 2.0)
 obs1_y = obs1_x
-obs1_z = 0.5
-obs2_x = random.uniform(2.5, 3.0)
+obs1_z = 1.2
+obs2_x = random.uniform(3.5, 4.0)
 obs2_y = obs2_x
-obs2_z = 0.5
+obs2_z = 1.5
 # 设置球形障碍物的中心和半径, 下面这是两个障碍物的参数，前三位是x,y,z,第四位是r
 obstacles = [[obs1_x, obs1_y, obs1_z, OBS_SAFE],
              [obs2_x, obs2_y, obs2_z, OBS_SAFE]]
@@ -177,15 +175,15 @@ leader_pose = {
     "follow2_x": P_f2_traj_interpolated[0, :num_frames_interpolated],
     "follow2_y": P_f2_traj_interpolated[1, :num_frames_interpolated],
     "follow2_z": P_f2_traj_interpolated[2, :num_frames_interpolated],
-    "follow1_1_x": P_f3_traj_interpolated[0, :num_frames_interpolated],
-    "follow1_1_y": P_f3_traj_interpolated[1, :num_frames_interpolated],
-    "follow1_1_z": P_f3_traj_interpolated[2, :num_frames_interpolated],
-    "follow1_2_x": P_f4_traj_interpolated[0, :num_frames_interpolated],
-    "follow1_2_y": P_f4_traj_interpolated[1, :num_frames_interpolated],
-    "follow1_2_z": P_f4_traj_interpolated[2, :num_frames_interpolated],
-    "follow2_1_x": P_f5_traj_interpolated[0, :num_frames_interpolated],
-    "follow2_1_y": P_f5_traj_interpolated[1, :num_frames_interpolated],
-    "follow2_1_z": P_f5_traj_interpolated[2, :num_frames_interpolated],
+    "follow3_x": P_f3_traj_interpolated[0, :num_frames_interpolated],
+    "follow3_y": P_f3_traj_interpolated[1, :num_frames_interpolated],
+    "follow3_z": P_f3_traj_interpolated[2, :num_frames_interpolated],
+    "follow4_x": P_f4_traj_interpolated[0, :num_frames_interpolated],
+    "follow4_y": P_f4_traj_interpolated[1, :num_frames_interpolated],
+    "follow4_z": P_f4_traj_interpolated[2, :num_frames_interpolated],
+    "follow4_x": P_f5_traj_interpolated[0, :num_frames_interpolated],
+    "follow5_y": P_f5_traj_interpolated[1, :num_frames_interpolated],
+    "follow5_z": P_f5_traj_interpolated[2, :num_frames_interpolated],
 }
 
 df = pd.DataFrame(leader_pose)
@@ -270,9 +268,9 @@ z1_a = obstacles[1][2] + obstacles[1][-1] * np.outer(np.ones(
 # 設置動畫
 fig = plt.figure(figsize=(10, 8))
 ax = fig.add_subplot(111, projection='3d')
-ax.set_xlim([-3, 6])
-ax.set_ylim([-3, 6])
-ax.set_zlim([-3, 6])
+ax.set_xlim([-1, 7])
+ax.set_ylim([-1, 7])
+ax.set_zlim([-1.0, 3.0])
 
 # 绘制障碍物
 ax.plot_surface(x0_a, y0_a, z0_a, color='b', alpha=0.6)  # 使用半透明的蓝色
@@ -282,10 +280,9 @@ ax.plot_surface(x1_a, y1_a, z1_a, color='b', alpha=0.6)  # 使用半透明的蓝
 leader_line, = ax.plot([], [], [], label="Leader Trajectory", color='red')
 f1_line, = ax.plot([], [], [], label="Follower1 Trajectory", color='green')
 f2_line, = ax.plot([], [], [], label="Follower2 Trajectory", color='orange')
-f1_f1_line, = ax.plot([], [], [], label="F1_F1 Trajectory", color='cyan')
-f1_f2_line, = ax.plot([], [], [], label="F1_F2 Trajectory", color='brown')
-f2_f1_line, = ax.plot([], [], [], label="F2_F1 Trajectory", color='pink')
-f2_f2_line, = ax.plot([], [], [], label="F2_F2 Trajectory", color='purple')
+f3_line, = ax.plot([], [], [], label="Follower3 Trajectory", color='cyan')
+f4_line, = ax.plot([], [], [], label="Follower4 Trajectory", color='brown')
+f5_line, = ax.plot([], [], [], label="Follower5 Trajectory", color='pink')
 
 # 初始和目標點，以紅色標記並用黑色標注座標
 ax.scatter(P_l_start[0],
@@ -294,11 +291,6 @@ ax.scatter(P_l_start[0],
            color='red',
            label='Start Point',
            s=100)
-ax.text(P_l_start[0],
-        P_l_start[1],
-        P_l_start[2],
-        f'({P_l_start[0]:.2f}, {P_l_start[1]:.2f}, {P_l_start[2]:.2f})',
-        color='black')
 
 ax.scatter(P_l_goal[0],
            P_l_goal[1],
@@ -319,11 +311,6 @@ ax.scatter(P_f1_start[0],
            color='green',
            label='Follower1 Start',
            s=100)
-ax.text(P_f1_start[0],
-        P_f1_start[1],
-        P_f1_start[2],
-        f'({P_f1_start[0]:.2f}, {P_f1_start[1]:.2f}, {P_f1_start[2]:.2f})',
-        color='black')
 
 ax.scatter(P_f2_start[0],
            P_f2_start[1],
@@ -331,47 +318,27 @@ ax.scatter(P_f2_start[0],
            color='orange',
            label='Follower2 Start',
            s=100)
-ax.text(P_f2_start[0],
-        P_f2_start[1],
-        P_f2_start[2],
-        f'({P_f2_start[0]:.2f}, {P_f2_start[1]:.2f}, {P_f2_start[2]:.2f})',
-        color='black')
 
 ax.scatter(P_f3_start[0],
            P_f3_start[1],
            P_f3_start[2],
            color='cyan',
-           label='Follower1_f1 Start',
+           label='Follower3 Start',
            s=100)
-ax.text(P_f3_start[0],
-        P_f3_start[1],
-        P_f3_start[2],
-        f'({P_f3_start[0]:.2f}, {P_f3_start[1]:.2f}, {P_f3_start[2]:.2f})',
-        color='black')
 
 ax.scatter(P_f4_start[0],
            P_f4_start[1],
            P_f4_start[2],
            color='brown',
-           label='Follower1_f2 Start',
+           label='Follower4 Start',
            s=100)
-ax.text(P_f4_start[0],
-        P_f4_start[1],
-        P_f4_start[2],
-        f'({P_f4_start[0]:.2f}, {P_f4_start[1]:.2f}, {P_f4_start[2]:.2f})',
-        color='black')
 
 ax.scatter(P_f5_start[0],
            P_f5_start[1],
            P_f5_start[2],
            color='pink',
-           label='Follower2_f1 Start',
+           label='Follower5 Start',
            s=100)
-ax.text(P_f5_start[0],
-        P_f5_start[1],
-        P_f5_start[2],
-        f'({P_f5_start[0]:.2f}, {P_f5_start[1]:.2f}, {P_f5_start[2]:.2f})',
-        color='black')
 
 
 # 初始化函數
@@ -385,16 +352,16 @@ def init():
     f2_line.set_data([], [])
     f2_line.set_3d_properties([])
 
-    f1_f1_line.set_data([], [])
-    f1_f1_line.set_3d_properties([])
+    f3_line.set_data([], [])
+    f3_line.set_3d_properties([])
 
-    f1_f2_line.set_data([], [])
-    f1_f2_line.set_3d_properties([])
+    f4_line.set_data([], [])
+    f4_line.set_3d_properties([])
 
-    f2_f1_line.set_data([], [])
-    f2_f1_line.set_3d_properties([])
+    f5_line.set_data([], [])
+    f5_line.set_3d_properties([])
 
-    return leader_line, f1_line, f2_line, f1_f1_line, f1_f2_line, f2_f1_line
+    return leader_line, f1_line, f2_line, f3_line, f4_line, f5_line
 
 
 # 更新每一幀的函數，以使用插值後的軌跡
@@ -411,17 +378,17 @@ def update_smooth(frame):
                      P_f2_traj_interpolated[1, :frame])
     f2_line.set_3d_properties(P_f2_traj_interpolated[2, :frame])
 
-    f1_f1_line.set_data(P_f3_traj_interpolated[0, :frame],
-                        P_f3_traj_interpolated[1, :frame])
-    f1_f1_line.set_3d_properties(P_f3_traj_interpolated[2, :frame])
+    f3_line.set_data(P_f3_traj_interpolated[0, :frame],
+                     P_f3_traj_interpolated[1, :frame])
+    f3_line.set_3d_properties(P_f3_traj_interpolated[2, :frame])
 
-    f1_f2_line.set_data(P_f4_traj_interpolated[0, :frame],
-                        P_f4_traj_interpolated[1, :frame])
-    f1_f2_line.set_3d_properties(P_f4_traj_interpolated[2, :frame])
+    f4_line.set_data(P_f4_traj_interpolated[0, :frame],
+                     P_f4_traj_interpolated[1, :frame])
+    f4_line.set_3d_properties(P_f4_traj_interpolated[2, :frame])
 
-    f2_f1_line.set_data(P_f5_traj_interpolated[0, :frame],
-                        P_f5_traj_interpolated[1, :frame])
-    f2_f1_line.set_3d_properties(P_f5_traj_interpolated[2, :frame])
+    f5_line.set_data(P_f5_traj_interpolated[0, :frame],
+                     P_f5_traj_interpolated[1, :frame])
+    f5_line.set_3d_properties(P_f5_traj_interpolated[2, :frame])
 
     # 在每一帧更新leader和follower之间的虚线
     if frame < num_frames_interpolated - 1:
@@ -515,7 +482,7 @@ def update_smooth(frame):
                    P_f3_end[1],
                    P_f3_end[2],
                    color='cyan',
-                   label='Follower1_1 End',
+                   label='Follower3 End',
                    s=100)
         ax.text(P_f3_end[0],
                 P_f3_end[1],
@@ -527,7 +494,7 @@ def update_smooth(frame):
                    P_f4_end[1],
                    P_f4_end[2],
                    color='brown',
-                   label='Follower1_2 End',
+                   label='Follower4 End',
                    s=100)
         ax.text(P_f4_end[0],
                 P_f4_end[1],
@@ -539,7 +506,7 @@ def update_smooth(frame):
                    P_f5_end[1],
                    P_f5_end[2],
                    color='pink',
-                   label='Follower2_1 End',
+                   label='Follower5 End',
                    s=100)
         ax.text(P_f5_end[0],
                 P_f5_end[1],
@@ -547,7 +514,7 @@ def update_smooth(frame):
                 f'({P_f5_end[0]:.2f}, {P_f5_end[1]:.2f}, {P_f5_end[2]:.2f})',
                 color='black')
 
-        # plot l->f1->f2
+        # plot l->f1  l->f2
         ax.plot([p_l_end[0], P_f1_end[0]], [p_l_end[1], P_f1_end[1]],
                 [p_l_end[2], P_f1_end[2]],
                 color='black')
@@ -562,23 +529,37 @@ def update_smooth(frame):
                 [p_l_end[2], P_f4_end[2]],
                 color='black')
 
-        # plot l->f4->f5
-        ax.plot([p_l_end[0], P_f5_end[0]], [p_l_end[1], P_f5_end[1]],
-                [p_l_end[2], P_f5_end[2]],
+        # plot f1->f4
+        ax.plot([P_f1_end[0], P_f4_end[0]], [P_f1_end[1], P_f4_end[1]],
+                [P_f1_end[2], P_f4_end[2]],
                 color='black')
-
-        # plot f1->f2->f3->f4->f5->f6->f1
-        ax.plot([P_f1_end[0], P_f2_end[0]], [P_f1_end[1], P_f2_end[1]],
-                [P_f1_end[2], P_f2_end[2]],
+        # plot f1->f5
+        ax.plot([P_f1_end[0], P_f5_end[0]], [P_f1_end[1], P_f5_end[1]],
+                [P_f1_end[2], P_f5_end[2]],
                 color='black')
+        # plot f1->f3
+        ax.plot([P_f1_end[0], P_f3_end[0]], [P_f1_end[1], P_f3_end[1]],
+                [P_f1_end[2], P_f3_end[2]],
+                color='black')
+        # plot f2->f4
+        ax.plot([P_f2_end[0], P_f4_end[0]], [P_f2_end[1], P_f4_end[1]],
+                [P_f2_end[2], P_f4_end[2]],
+                color='black')
+        # plot f2->f5
+        ax.plot([P_f2_end[0], P_f5_end[0]], [P_f2_end[1], P_f5_end[1]],
+                [P_f2_end[2], P_f5_end[2]],
+                color='black')
+        # plot f2->f3
         ax.plot([P_f2_end[0], P_f3_end[0]], [P_f2_end[1], P_f3_end[1]],
                 [P_f2_end[2], P_f3_end[2]],
                 color='black')
-        ax.plot([P_f3_end[0], P_f4_end[0]], [P_f3_end[1], P_f4_end[1]],
-                [P_f3_end[2], P_f4_end[2]],
+        # plot f5->f3
+        ax.plot([P_f5_end[0], P_f3_end[0]], [P_f5_end[1], P_f3_end[1]],
+                [P_f5_end[2], P_f3_end[2]],
                 color='black')
-        ax.plot([P_f4_end[0], P_f5_end[0]], [P_f4_end[1], P_f5_end[1]],
-                [P_f4_end[2], P_f5_end[2]],
+        # plot f5->f4
+        ax.plot([P_f5_end[0], P_f4_end[0]], [P_f5_end[1], P_f4_end[1]],
+                [P_f5_end[2], P_f4_end[2]],
                 color='black')
 
         # 删除虚线
@@ -592,8 +573,6 @@ def update_smooth(frame):
         update_smooth.line_f4.set_3d_properties([])
         update_smooth.line_f5.set_data([], [])
         update_smooth.line_f5.set_3d_properties([])
-        update_smooth.line_f6.set_data([], [])
-        update_smooth.line_f6.set_3d_properties([])
 
         ani.event_source.stop()
 
