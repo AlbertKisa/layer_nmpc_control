@@ -36,7 +36,7 @@ OBS_SAFE = 0.2
 # 設定Leader初始位置和目標位置
 P_l_start = np.array([0, 0, 1.3])
 P_l_goal = np.array([5.0, 5.0, 1.3])
-z_limits = np.array([0.4, 1.8])
+z_limits = np.array([0.4, 2.0])
 
 # 生成菱形的向量
 size = NEIGHBOUR_SAFE * 2.0
@@ -47,24 +47,24 @@ l_random = random.uniform
 
 # 隨機設置Follower的初始位置
 P_f1_start = vertices[0]
-P_f2_start = vertices[1]
-P_f3_start = vertices[2]
-P_f4_start = vertices[3]
-P_f5_start = vertices[5]
+P_f2_start = vertices[3]
+P_f3_start = vertices[5]
+P_f4_start = vertices[2]
+P_f5_start = vertices[1]
 
 # 定義向量以形成編隊
 d1 = vertices[0] - vertices[4]
-d2 = vertices[1] - vertices[4]
-d3 = vertices[2] - vertices[4]
-d4 = vertices[3] - vertices[4]
-d5 = vertices[5] - vertices[4]
+d2 = vertices[3] - vertices[4]
+d3 = vertices[5] - vertices[4]
+d4 = vertices[2] - vertices[4]
+d5 = vertices[1] - vertices[4]
 
 obs1_x = random.uniform(1.5, 2.0)
 obs1_y = obs1_x
-obs1_z = 1.2
+obs1_z = 1.3
 obs2_x = random.uniform(3.5, 4.0)
 obs2_y = obs2_x
-obs2_z = 1.5
+obs2_z = 1.3
 # 设置球形障碍物的中心和半径, 下面这是两个障碍物的参数，前三位是x,y,z,第四位是r
 obstacles = [[obs1_x, obs1_y, obs1_z, OBS_SAFE],
              [obs2_x, obs2_y, obs2_z, OBS_SAFE]]
@@ -79,6 +79,8 @@ time_start = time.time()
 P_l_traj, step, vel, dis_to_goal = NMPCLeader(P_l_start, P_l_goal,
                                               obstacles_new, OBS_SAFE,
                                               z_limits)
+pl_end = P_l_traj[:-1]
+print(pl_end)
 time_step_data.append(["{:3f}".format(time.time() - time_start), step])
 
 # 計算Follower1的轨迹
@@ -514,52 +516,46 @@ def update_smooth(frame):
                 f'({P_f5_end[0]:.2f}, {P_f5_end[1]:.2f}, {P_f5_end[2]:.2f})',
                 color='black')
 
-        # plot l->f1  l->f2
-        ax.plot([p_l_end[0], P_f1_end[0]], [p_l_end[1], P_f1_end[1]],
-                [p_l_end[2], P_f1_end[2]],
+        # plot f1->l f1->f2 f1->f3 f1->f4
+        ax.plot([P_f1_end[0], p_l_end[0]], [P_f1_end[1], p_l_end[1]],
+                [P_f1_end[2], p_l_end[2]],
                 color='black')
+        ax.plot([P_f1_end[0], P_f2_end[0]], [P_f1_end[1], P_f2_end[1]],
+                [P_f1_end[2], P_f2_end[2]],
+                color='black')
+        ax.plot([P_f1_end[0], P_f3_end[0]], [P_f1_end[1], P_f3_end[1]],
+                [P_f1_end[2], P_f3_end[2]],
+                color='black')
+        ax.plot([P_f1_end[0], P_f4_end[0]], [P_f1_end[1], P_f4_end[1]],
+                [P_f1_end[2], P_f4_end[2]],
+                color='black')
+
+        # plot f5->l f5->f2 f5->f3 f5->f4
+        ax.plot([P_f5_end[0], p_l_end[0]], [P_f5_end[1], p_l_end[1]],
+                [P_f5_end[2], p_l_end[2]],
+                color='black')
+        ax.plot([P_f5_end[0], P_f2_end[0]], [P_f5_end[1], P_f2_end[1]],
+                [P_f5_end[2], P_f2_end[2]],
+                color='black')
+        ax.plot([P_f5_end[0], P_f3_end[0]], [P_f5_end[1], P_f3_end[1]],
+                [P_f5_end[2], P_f3_end[2]],
+                color='black')
+        ax.plot([P_f5_end[0], P_f4_end[0]], [P_f5_end[1], P_f4_end[1]],
+                [P_f5_end[2], P_f4_end[2]],
+                color='black')
+
+        # plot l->f2 l->f4 f3->f2 f3->f4
         ax.plot([p_l_end[0], P_f2_end[0]], [p_l_end[1], P_f2_end[1]],
                 [p_l_end[2], P_f2_end[2]],
-                color='black')
-        # plot l->f3->f4
-        ax.plot([p_l_end[0], P_f3_end[0]], [p_l_end[1], P_f3_end[1]],
-                [p_l_end[2], P_f3_end[2]],
                 color='black')
         ax.plot([p_l_end[0], P_f4_end[0]], [p_l_end[1], P_f4_end[1]],
                 [p_l_end[2], P_f4_end[2]],
                 color='black')
-
-        # plot f1->f4
-        ax.plot([P_f1_end[0], P_f4_end[0]], [P_f1_end[1], P_f4_end[1]],
-                [P_f1_end[2], P_f4_end[2]],
+        ax.plot([P_f3_end[0], P_f2_end[0]], [P_f3_end[1], P_f2_end[1]],
+                [P_f3_end[2], P_f2_end[2]],
                 color='black')
-        # plot f1->f5
-        ax.plot([P_f1_end[0], P_f5_end[0]], [P_f1_end[1], P_f5_end[1]],
-                [P_f1_end[2], P_f5_end[2]],
-                color='black')
-        # plot f1->f3
-        ax.plot([P_f1_end[0], P_f3_end[0]], [P_f1_end[1], P_f3_end[1]],
-                [P_f1_end[2], P_f3_end[2]],
-                color='black')
-        # plot f2->f4
-        ax.plot([P_f2_end[0], P_f4_end[0]], [P_f2_end[1], P_f4_end[1]],
-                [P_f2_end[2], P_f4_end[2]],
-                color='black')
-        # plot f2->f5
-        ax.plot([P_f2_end[0], P_f5_end[0]], [P_f2_end[1], P_f5_end[1]],
-                [P_f2_end[2], P_f5_end[2]],
-                color='black')
-        # plot f2->f3
-        ax.plot([P_f2_end[0], P_f3_end[0]], [P_f2_end[1], P_f3_end[1]],
-                [P_f2_end[2], P_f3_end[2]],
-                color='black')
-        # plot f5->f3
-        ax.plot([P_f5_end[0], P_f3_end[0]], [P_f5_end[1], P_f3_end[1]],
-                [P_f5_end[2], P_f3_end[2]],
-                color='black')
-        # plot f5->f4
-        ax.plot([P_f5_end[0], P_f4_end[0]], [P_f5_end[1], P_f4_end[1]],
-                [P_f5_end[2], P_f4_end[2]],
+        ax.plot([P_f3_end[0], P_f4_end[0]], [P_f3_end[1], P_f4_end[1]],
+                [P_f3_end[2], P_f4_end[2]],
                 color='black')
 
         # 删除虚线
