@@ -13,9 +13,9 @@ kappa = 1.0
 
 # weight
 tracking_weight = 1.0
-collsion_weight = 1.1
+collsion_weight = 1.3
 over_height_weight = 1.0
-smoothness_weight = 1000.0
+input_change_weight = 2.0
 
 # ego motion parameter
 VMAX = 1.0
@@ -48,15 +48,12 @@ def TatalCollisionCost(path_robot, obstacles, static_safe_dis):
 
 
 def OverZlimitCost(p_robot, z_limits):
-    cost = 0.0
-    if p_robot[-1] > z_limits[-1]:
-        cost += 1.0
-    if p_robot[-1] < z_limits[0]:
-        cost += 1.0
+    if p_robot[-1] > z_limits[-1] or p_robot[-1] < z_limits[0]:
+        return 1.0
 
+    cost = 0.0
     ground_proximity_cost = 0.1 / (p_robot[-1] - z_limits[0] + 0.1)  # 避免除以零
     cost += ground_proximity_cost
-
     ceiling_proximity_cost = 0.1 / (z_limits[-1] - p_robot[-1] + 0.1)
     cost += ceiling_proximity_cost
 
@@ -72,27 +69,17 @@ def TotalOverZlimitCost(path_robot, z_limits):
     return total_cost
 
 
-def SmoothnessCost(path_robot):
-    """
-    Calculate the smoothness cost based on velocity change.
-    """
-    cost = 0.0
-    for i in range(1, HORIZON_LENGTH - 1):
-        p_prev = path_robot[3 * (i - 1):3 * i]
-        p_curr = path_robot[3 * i:3 * (i + 1)]
-        p_next = path_robot[3 * (i + 1):3 * (i + 2)]
-
-        # Calculate the angle between consecutive segments
-        v1 = p_curr - p_prev
-        v2 = p_next - p_curr
-        angle_cos = np.dot(
-            v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2) + 1e-6)
-        cost += (1 - angle_cos)  # Larger angles result in higher cost
-    return cost
-
-
 def TrackingCost(x, xref):
     return np.linalg.norm(x - xref)
+
+
+def InputChangeCost(u):
+    cost = 0.0
+    for i in range(HORIZON_LENGTH - 1):
+        delta_u = u[3 * (i + 1):3 * (i + 2)] - u[3 * i:3 * (i + 1)]
+        cost += np.linalg.norm(delta_u)**2
+
+    return cost
 
 
 def UpdateState(x0, u, timestep):
@@ -115,9 +102,8 @@ def TotalCost(u, robot_state, obstacles, xref, static_safe_dis, z_limits):
     c2 = TatalCollisionCost(p_robot, obstacles,
                             static_safe_dis) * collsion_weight
     c3 = TotalOverZlimitCost(p_robot, z_limits) * over_height_weight
-    # c4 = SmoothnessCost(p_robot) * smoothness_weight
-    # print(f"c1:{c1} c2:{c2} c3:{c3} c4:{c4}")
-    total = c1 + c2 + c3
+    c4 = InputChangeCost(u) * input_change_weight
+    total = c1 + c2 + c3 + c4
 
     return total
 
@@ -184,7 +170,7 @@ def NMPCLeader(start_pose, goal_pose, obstacles, static_safe_dis, z_limits):
 
         robot_state_history = np.hstack(
             (robot_state_history, robot_state.reshape(-1, 1)))
-        if dis_to_goal < 0.1:
+        if dis_to_goal < 0.05:
             print("final_step:", final_step, "final distance to goal:",
                   dis_to_goal)
             break
@@ -218,7 +204,7 @@ def set_axes_equal(ax):
 if __name__ == "__main__":
     start_pose = np.array([0, 0, 1.3])
     goal_pose = np.array([5.0, 5.0, 1.3])
-    obstacles = np.array([[1.8, 1.8, 1.2], [3.7, 3.7, 1.5]])
+    obstacles = np.array([[1.8, 1.8, 1.3], [3.7, 3.7, 1.3]])
     z_limits = np.array([0.4, 1.8])
     obs_rad = 0.2
     path, final_step, val, dis = NMPCLeader(start_pose, goal_pose, obstacles,

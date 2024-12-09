@@ -18,9 +18,10 @@ alpha = 5.
 VMAX = 4
 
 # weight
-tracking_weight = 2.0
-collsion_weight = 1.1
-over_height_weight = 1.5
+tracking_weight = 1.0
+collsion_weight = 1.3
+over_height_weight = 1.0
+input_change_weight = 2.0
 
 # nmpc parameter
 HORIZON_LENGTH = int(8)
@@ -63,15 +64,12 @@ def TatalCollisionCost(path_robot, dynamic_obstacles, static_obstacles,
 
 
 def OverZlimitCost(p_robot, z_limits):
-    cost = 0.0
-    if p_robot[-1] > z_limits[-1]:
-        cost += 1.0
-    if p_robot[-1] < z_limits[0]:
-        cost += 1.0
+    if p_robot[-1] > z_limits[-1] or p_robot[-1] < z_limits[0]:
+        return 1.0
 
+    cost = 0.0
     ground_proximity_cost = 0.1 / (p_robot[-1] - z_limits[0] + 0.1)  # 避免除以零
     cost += ground_proximity_cost
-
     ceiling_proximity_cost = 0.1 / (z_limits[-1] - p_robot[-1] + 0.1)
     cost += ceiling_proximity_cost
 
@@ -85,6 +83,15 @@ def TotalOverZlimitCost(path_robot, z_limits):
         total_cost += OverZlimitCost(p_rob, z_limits)
 
     return total_cost
+
+
+def InputChangeCost(u):
+    cost = 0.0
+    for i in range(HORIZON_LENGTH - 1):
+        delta_u = u[3 * (i + 1):3 * (i + 2)] - u[3 * i:3 * (i + 1)]
+        cost += np.linalg.norm(delta_u)**2
+
+    return cost
 
 
 def UpdateState(x0, u, timestep):
@@ -109,8 +116,9 @@ def TotalCost(u, robot_state, dynamic_obs, static_obs, dynamic_obs_safe_dis,
                             dynamic_obs_safe_dis,
                             static_obs_safe_dis) * collsion_weight
     c3 = TotalOverZlimitCost(p_robot, z_limits) * over_height_weight
+    c4 = InputChangeCost(u) * input_change_weight
 
-    total = c1 + c2 + c3
+    total = c1 + c2 + c3 + c4
     return total
 
 
@@ -232,7 +240,7 @@ def NMPCFollower(start_pose,
 
         robot_state_history = np.hstack(
             (robot_state_history, robot_state.reshape(-1, 1)))
-        if dis_to_goal < 0.1:
+        if dis_to_goal < 0.05:
             print("final_step:", final_step, "final distance to goal:",
                   dis_to_goal)
             break
