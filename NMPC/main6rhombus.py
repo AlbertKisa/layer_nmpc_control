@@ -79,8 +79,7 @@ time_start = time.time()
 P_l_traj, step, vel, dis_to_goal = NMPCLeader(P_l_start, P_l_goal,
                                               obstacles_new, OBS_SAFE,
                                               z_limits)
-pl_end = P_l_traj[:-1]
-print(pl_end)
+
 time_step_data.append(["{:3f}".format(time.time() - time_start), step])
 
 # 計算Follower1的轨迹
