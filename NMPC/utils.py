@@ -76,6 +76,29 @@ def GeneratePyramid(vertex, side_length):
     return vertices
 
 
+def GenerateTrianglePoints(start_vertex, direction, side_length):
+    # 计算旋转矩阵
+    theta = np.radians(direction)
+    rotation_matrix = np.array([[np.cos(theta), -np.sin(theta)],
+                                [np.sin(theta), np.cos(theta)]])
+
+    # 正三角形顶点相对位置
+    vertex_offsets = np.array([[0, 0], [side_length, 0],
+                               [side_length / 2,
+                                np.sqrt(3) * side_length / 2]])
+
+    # 旋转和平移顶点
+    vertices = start_vertex + np.dot(vertex_offsets, rotation_matrix.T)
+
+    midpoints = (vertices + np.roll(vertices, -1, axis=0)) / 2
+
+    all_points = np.vstack((vertices[0], midpoints[0], vertices[1],
+                            midpoints[1], vertices[2], midpoints[2]))
+    all_points = np.hstack((all_points, np.zeros((6, 1))))
+
+    return all_points
+
+
 def plot_3d_rhombus(vertices):
     """
     绘制立体菱形

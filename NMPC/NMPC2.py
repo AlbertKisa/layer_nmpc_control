@@ -8,11 +8,8 @@ TIMESTEP = 0.5
 NUMBER_OF_TIMESTEPS = int(SIM_TIME / TIMESTEP)
 
 # collision cost
-Qc = 5.
-kappa = 4.
-
-# tracking reference line cost
-alpha = 5.
+Qc = 1.
+kappa = 1.
 
 # ego motion parameter
 VMAX = 4
@@ -35,7 +32,7 @@ def CollisionCost(p_robot, p_obs, safe_dis):
     Cost of collision between two robot_state
     """
     d = np.linalg.norm(p_robot - p_obs)
-    cost = Qc / (1 + np.exp(kappa * (d - safe_dis)))
+    cost = Qc / (1 + np.exp(kappa * (d - 2 * safe_dis)))
     return cost
 
 
@@ -43,9 +40,7 @@ def TrackingCost(p_robot, p_stitch):
     """
     Cost of track reference_line
     """
-    d = np.linalg.norm(p_robot - p_stitch)
-    cost = alpha * d
-    return cost
+    return np.linalg.norm(p_robot - p_stitch)
 
 
 def TatalCollisionCost(path_robot, dynamic_obstacles, static_obstacles,
@@ -211,10 +206,7 @@ def NMPCFollower(start_pose,
         dis_to_goal = np.linalg.norm(goal_pose - robot_state)
         lower_bound = lower_bound_default
         upper_bound = upper_bound_default
-        if dis_to_goal >= 4.0 and dis_to_goal <= 8.0:
-            upper_bound = [1.0] * HORIZON_LENGTH * 3
-            lower_bound = [-1.0] * HORIZON_LENGTH * 3
-        if dis_to_goal >= 1.0 and dis_to_goal < 4.0:
+        if dis_to_goal >= 1.0 and dis_to_goal < 10.0:
             upper_bound = [0.5] * HORIZON_LENGTH * 3
             lower_bound = [-0.5] * HORIZON_LENGTH * 3
         if dis_to_goal < 1.0:
@@ -240,7 +232,7 @@ def NMPCFollower(start_pose,
 
         robot_state_history = np.hstack(
             (robot_state_history, robot_state.reshape(-1, 1)))
-        if dis_to_goal < 0.05:
+        if dis_to_goal < 0.04:
             print("final_step:", final_step, "final distance to goal:",
                   dis_to_goal)
             break
