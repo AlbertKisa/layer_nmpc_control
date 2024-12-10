@@ -1,13 +1,127 @@
-print(f"P_l_start:{P_l_start} P_l_goal:{P_l_goal}")
-time_start = time.time()
-P_l_traj, step, vel, dis_to_goal = NMPCLeader(P_l_start, P_l_goal,
-                                              obstacles_new, OBS_SAFE,
-                                              z_limits)
-time_step_data.append(["{:3f}".format(time.time() - time_start), step])
+代码的第159行开始定义了`NMPCFollower`函数，这是一个实现非线性模型预测控制（NMPC）的控制器，用于控制一个跟随机器人（Follower）沿着指定的参考轨迹行驶，同时避免碰撞并保持一定的队形。
 
-# 檢查軌跡數據
-print("領導者軌跡計算完成")
-print(f"軌跡終點數據（最後一個點）: {P_l_traj[:, -1]}")
-print(f"目標點數據: {P_l_goal}")
+### `NMPCFollower`函数的详细解释：
 
-print(f"軌跡終點數據（最後一個點）: {P_l_traj[:, -1]}")
+1. **函数目的**：该函数实现了一个跟随机器人的控制策略，使得机器人能够在跟随领导者轨迹的同时，避免与障碍物碰撞，并保持与其他机器人的队形。
+
+2. **输入参数**：
+   - `start_pose`：跟随机器人的初始位置。
+   - `goal_pose`：跟随机器人的目标位置。
+   - `leader_trajectory`：领导者机器人的轨迹。
+   - `formation_d`：跟随机器人应保持的队形距离。
+   - `neighbour_trajectory`：其他机器人（邻居）的轨迹。
+   - `obstacles`：环境中的障碍物。
+   - `neighbour_safe_dis`：与其他机器人之间的安全距离。
+   - `avoid_obs_safe_dis`：与障碍物之间的安全距离。
+   - `z_limits`：限制机器人的Z轴高度范围。
+   - `use_debug`：是否输出调试信息（True/False）。
+
+3. **主要流程**：
+   - **初始化**：机器人从`start_pose`开始，记录机器人的初始状态历史。通过调整领导者的轨迹来计算参考轨迹`ref_trajectory`，并根据队形距离进行调整。
+   - **时间步长循环**：机器人按照时间步长移动：
+     - 计算当前与目标位置的距离`dis_to_goal`。
+     - 根据距离目标的位置调整控制输入的速度边界（距离目标远时，速度边界较大；距离目标近时，速度边界较小）。
+     - 计算参考路径（参考轨迹）并提取邻居机器人（队形中其他机器人的）轨迹。
+     - 调用`ComputeVelocity`计算当前机器人的控制速度，考虑了当前状态、参考路径、障碍物、邻居机器人的轨迹和其他限制。
+     - 使用`UpdateState`函数更新机器人的状态，并记录更新后的状态。
+     - 如果机器人已经足够接近目标，提前终止循环。
+   - **返回值**：
+     - `robot_state_history`：机器人状态的历史记录。
+     - `final_step`：机器人到达目标或停止时的时间步。
+     - `vel_list`：每一步计算的速度列表。
+     - `dis_to_goal`：最终到目标的距离。
+
+### 关键函数：
+- **`ComputeRefPath`**：根据领导者轨迹生成参考路径，供跟随机器人追踪。
+- **`GetNeighbourTraj`**：提取邻居机器人（队形中的其他机器人的）轨迹。
+- **`ComputeVelocity`**：使用优化方法计算机器人的控制速度，考虑了总成本（包括跟踪成本、碰撞成本、限高成本和输入变化成本）。
+- **`UpdateState`**：根据当前的控制速度更新机器人的状态。
+
+### 关键概念：
+- **轨迹跟踪**：跟随机器人根据参考路径（由领导者轨迹调整）进行运动。
+- **避障**：机器人避免与静态障碍物碰撞，并保持与其他机器人的安全距离。
+- **限高**：机器人避免超出设定的Z轴高度范围（`z_limits`）。
+- **输入变化最小化**：控制器通过最小化控制输入的变化，确保机器人的运动平稳。
+
+总结来说，这个函数通过非线性模型预测控制方法（NMPC）确保跟随机器人能够在遵循领导者轨迹的同时，避免碰撞，保持队形，并维持平稳的运动。
+
+
+以下是对函数 `GetNeighbourTraj` 的逐行分段解释：
+
+### 函数目的
+该函数的目的是根据给定的时间戳和邻居机器人的轨迹，从邻居轨迹中提取未来几个时间步骤的位置。它会根据当前时间戳 `time_stamp` 和时间步长 `timestep`，计算出未来 `number_of_steps` 步的轨迹。
+
+### 代码解释
+
+```python
+def GetNeighbourTraj(neighbour_trajectory, time_stamp, number_of_steps, timestep):
+```
+- **定义函数**：`GetNeighbourTraj` 接受四个参数：
+  - `neighbour_trajectory`：邻居机器人的轨迹，通常是一个二维数组（每一列代表机器人在某个时间点的位置）。
+  - `time_stamp`：当前的时间步。
+  - `number_of_steps`：需要预测的时间步数。
+  - `timestep`：每个时间步的长度。
+
+```python
+    if neighbour_trajectory.size == 0:
+        return []
+```
+- **检查轨迹是否为空**：如果邻居轨迹为空（`size == 0`），则返回一个空列表。这是为了避免没有轨迹数据时出错。
+
+```python
+    pre_neighbour_traj = np.empty((3, 0))
+```
+- **初始化空数组**：初始化一个空的数组 `pre_neighbour_traj` 用来存储预测的邻居轨迹。这个数组的形状是 `(3, 0)`，表示暂时没有数据，每个位置是一个三维坐标（x, y, z）。
+
+```python
+    for i in range(number_of_steps):
+```
+- **循环遍历时间步**：对未来的每一个时间步进行迭代，范围是 `number_of_steps`，即计算接下来 `number_of_steps` 个时间步的轨迹。
+
+```python
+        next_sim_time_ceil = time_stamp + math.ceil(
+            (i + 1) * timestep / TIMESTEP)
+```
+- **计算上一个时间步的上界**：计算当前时间戳加上 `i+1` 个时间步后的时间的“上界”（取整）。`math.ceil` 会向上取整，确保时间点是下一个离散时间点。
+
+```python
+        next_sim_time_floor = time_stamp + math.floor(                              
+            (i + 1) * time_stamp / TIMESTEP)
+```
+- **计算上一个时间步的下界**：计算当前时间戳加上 `i+1` 个时间步后的时间的“下界”（取整）。`math.floor` 会向下取整，确保时间点是当前离散时间点。
+
+```python
+        if next_sim_time_floor >= neighbour_trajectory.shape[1] - 1:
+            pre_neighbour_traj = np.hstack(
+                (pre_neighbour_traj, neighbour_trajectory[:,
+                                                          -1].reshape(-1, 1)))
+```
+- **轨迹越界处理**：如果下界时间步 `next_sim_time_floor` 大于等于邻居轨迹的最后一个时间点，表示我们已经超出了邻居轨迹的数据范围。此时，我们将邻居轨迹的最后一个位置添加到预测轨迹中，表示邻居在未来的轨迹不再变化，保持最后位置。
+
+```python
+        else:
+            ratio = ((i + 1) * timestep - 
+                     (next_sim_time_floor - timestep) * TIMESTEP) / TIMESTEP
+```
+- **计算插值比例**：如果没有越界，计算插值的比例。`ratio` 是用于在两个离散时间点之间插值的权重。通过计算 `((i + 1) * timestep - (next_sim_time_floor - timestep) * TIMESTEP)`，获取当前时间点与下界时间点之间的比例，然后除以 `TIMESTEP` 来标准化它。
+
+```python
+            tmp_pose = neighbour_trajectory[:, next_sim_time_floor] + (
+                neighbour_trajectory[:, next_sim_time_ceil] -
+                neighbour_trajectory[:, next_sim_time_floor]) * ratio
+```
+- **计算插值位置**：根据插值比例 `ratio`，计算邻居机器人的位置。它通过 `next_sim_time_floor` 和 `next_sim_time_ceil` 这两个时间点的轨迹位置进行插值，得到当前时刻（由 `ratio` 确定）机器人的位置。
+
+```python
+            pre_neighbour_traj = np.hstack(
+                (pre_neighbour_traj, tmp_pose.reshape(-1, 1)))
+```
+- **将插值位置添加到轨迹中**：将插值后的邻居位置 `tmp_pose` 添加到 `pre_neighbour_traj` 数组中，更新邻居的预测轨迹。
+
+```python
+    return pre_neighbour_traj.reshape(-1, order="F")
+```
+- **返回结果**：最后，返回预测的邻居轨迹。`reshape(-1, order="F")` 将 `pre_neighbour_traj` 展平为一维数组，并按列优先顺序排列。
+
+### 总结
+该函数的作用是基于邻居机器人的轨迹和当前的时间步，计算并返回未来 `number_of_steps` 个时间步的轨迹。它通过插值来计算邻居机器人在未来时间步的位置，并处理轨迹越界的情况。
