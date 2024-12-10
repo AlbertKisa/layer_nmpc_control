@@ -1,0 +1,13 @@
+print(f"P_l_start:{P_l_start} P_l_goal:{P_l_goal}")
+time_start = time.time()
+P_l_traj, step, vel, dis_to_goal = NMPCLeader(P_l_start, P_l_goal,
+                                              obstacles_new, OBS_SAFE,
+                                              z_limits)
+time_step_data.append(["{:3f}".format(time.time() - time_start), step])
+
+# 檢查軌跡數據
+print("領導者軌跡計算完成")
+print(f"軌跡終點數據（最後一個點）: {P_l_traj[:, -1]}")
+print(f"目標點數據: {P_l_goal}")
+
+print(f"軌跡終點數據（最後一個點）: {P_l_traj[:, -1]}")
