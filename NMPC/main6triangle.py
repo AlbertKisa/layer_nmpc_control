@@ -27,7 +27,11 @@ traj_csv_path = os.path.join(folder_path, "path.csv")
 l_f_loc_path = os.path.join(folder_path, "起点终点坐标.csv")
 obs_loc_path = os.path.join(folder_path, "障碍物坐标.csv")
 step_time_path = os.path.join(folder_path, "运行时间和迭代步数.csv")
+vel_path = os.path.join(folder_path, "速度.csv")
+dis_to_goal_path = os.path.join(folder_path, "终点误差.csv")
 time_step_data = []
+vel_list = []
+dis_to_goal_list = []
 
 # safe parameter
 NEIGHBOUR_SAFE = 0.1
@@ -78,6 +82,8 @@ P_l_traj, step, vel, dis_to_goal = NMPCLeader(P_l_start, P_l_goal,
                                               obstacles_new, OBS_SAFE,
                                               z_limits)
 time_step_data.append(["{:3f}".format(time.time() - time_start), step])
+vel_list = vel
+dis_to_goal_list.append(dis_to_goal)
 
 # 計算Follower1的轨迹
 print(f"P_f1_start:{P_f1_start} P_f1_goal:{P_l_goal + d1}")
@@ -87,6 +93,7 @@ P_f1_traj, step, vel, dis_to_goal = NMPCFollower(P_f1_start, P_l_goal + d1,
                                                  obstacles_new, NEIGHBOUR_SAFE,
                                                  OBS_SAFE, z_limits)
 time_step_data.append(["{:3f}".format(time.time() - time_start), step])
+dis_to_goal_list.append(dis_to_goal)
 
 # 計算Follower2的轨迹
 print(f"P_f2_start:{P_f2_start} P_f2_goal:{P_l_goal + d2}")
@@ -96,6 +103,7 @@ P_f2_traj, step, vel, dis_to_goal = NMPCFollower(P_f2_start, P_l_goal + d2,
                                                  obstacles_new, NEIGHBOUR_SAFE,
                                                  OBS_SAFE, z_limits)
 time_step_data.append(["{:3f}".format(time.time() - time_start), step])
+dis_to_goal_list.append(dis_to_goal)
 
 # 計算Follower3的轨迹
 print(f"P_f3_start:{P_f3_start} P_f3_goal:{P_l_goal + d3}")
@@ -105,6 +113,7 @@ P_f3_traj, step, vel, dis_to_goal = NMPCFollower(P_f3_start, P_l_goal + d3,
                                                  obstacles_new, NEIGHBOUR_SAFE,
                                                  OBS_SAFE, z_limits)
 time_step_data.append(["{:3f}".format(time.time() - time_start), step])
+dis_to_goal_list.append(dis_to_goal)
 
 # 計算Follower4的轨迹
 print(f"P_f4_start:{P_f4_start} P_f4_goal:{P_l_goal + d4}")
@@ -114,6 +123,7 @@ P_f4_traj, step, vel, dis_to_goal = NMPCFollower(P_f4_start, P_l_goal + d4,
                                                  obstacles_new, NEIGHBOUR_SAFE,
                                                  OBS_SAFE, z_limits)
 time_step_data.append(["{:3f}".format(time.time() - time_start), step])
+dis_to_goal_list.append(dis_to_goal)
 
 # 計算Follower5的轨迹
 print(f"P_f5_start:{P_f5_start} P_f5_goal:{P_l_goal + d5}")
@@ -123,6 +133,7 @@ P_f5_traj, step, vel, dis_to_goal = NMPCFollower(P_f5_start, P_l_goal + d5,
                                                  obstacles_new, NEIGHBOUR_SAFE,
                                                  OBS_SAFE, z_limits)
 time_step_data.append(["{:3f}".format(time.time() - time_start), step])
+dis_to_goal_list.append(dis_to_goal)
 
 # 計算Follower的終點，定義為全局變數
 p_l_end = P_l_traj[:, -1]
@@ -239,6 +250,45 @@ with open(step_time_path, 'w', newline='', encoding='utf-8') as csvfile:
     writer = csv.writer(csvfile)
     for row in time_step_data:
         writer.writerow(row)  # 写入一行数据
+
+vel_list.insert(0, [
+    "leader_x",
+    "leader_y",
+    "leader_z",
+    "leader_norm",
+    "follow1_x",
+    "follow1_y",
+    "follow1_z",
+    "follow1_norm",
+    "follow2_x",
+    "follow2_y",
+    "follow2_z",
+    "follow2_norm",
+    "follow3_x",
+    "follow3_y",
+    "follow3_z",
+    "follow3_norm",
+    "follow4_x",
+    "follow4_y",
+    "follow4_z",
+    "follow4_norm",
+    "follow5_x",
+    "follow5_y",
+    "follow5_z",
+    "follow5_norm",
+])
+with open(vel_path, 'w', newline='', encoding='utf-8') as csvfile:
+    writer = csv.writer(csvfile)
+    for row in vel_list:
+        writer.writerow(row)
+
+dis_to_goal_list = [dis_to_goal_list]
+dis_to_goal_list.insert(
+    0, ["leader", "follow1", "follow2", "follow3", "follow4", "follow5"])
+with open(dis_to_goal_path, 'w', newline='', encoding='utf-8') as csvfile:
+    writer = csv.writer(csvfile)
+    for row in dis_to_goal_list:
+        writer.writerow(row)
 
 # 创建球的参数
 u = np.linspace(0, 2 * np.pi, 100)  # 从 0 到 2π
