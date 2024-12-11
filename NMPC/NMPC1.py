@@ -177,6 +177,8 @@ def NMPCLeader(start_pose, goal_pose, obstacles, static_safe_dis, z_limits):
 
     robot_state_history = np.hstack(
         (robot_state_history, goal_pose.reshape(-1, 1)))
+    robot_state_history = np.hstack(
+        (robot_state_history, goal_pose.reshape(-1, 1)))
     print(f"goal_pose:{goal_pose}")
 
     return robot_state_history, final_step, vel_list, dis_to_goal

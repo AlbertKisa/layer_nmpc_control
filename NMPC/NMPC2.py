@@ -46,15 +46,20 @@ def TrackingCost(p_robot, p_stitch):
 def TatalCollisionCost(path_robot, dynamic_obstacles, static_obstacles,
                        dynamic_safe_dis, static_safe_dis):
     total_cost = 0.0
+    static_cost = 0.0
+    dynamic_cost = 0.0
     for i in range(HORIZON_LENGTH):
         for j in range(len(static_obstacles)):
             p_static_obs = static_obstacles[j]
             p_rob = path_robot[3 * i:3 * i + 3]
-            total_cost += CollisionCost(p_rob, p_static_obs, static_safe_dis)
-        # for k in range(len(dynamic_obstacles)):
-        #     p_dynamic_obs = dynamic_obstacles[3 * i:3 * i + 3]
-        #     p_rob = path_robot[3 * i:3 * i + 3]
-        #     total_cost += CollisionCost(p_rob, p_dynamic_obs, dynamic_safe_dis)
+            static_cost += CollisionCost(p_rob, p_static_obs, static_safe_dis)
+        for k in range(len(dynamic_obstacles)):
+            dynamic_obs_traj = dynamic_obstacles[k]
+            p_dynamic_obs = dynamic_obs_traj[3 * i:3 * i + 3]
+            p_rob = path_robot[3 * i:3 * i + 3]
+            dynamic_cost += CollisionCost(p_rob, p_dynamic_obs,
+                                          dynamic_safe_dis) * 0.1
+    total_cost = static_cost + dynamic_cost
     return total_cost
 
 
@@ -165,14 +170,14 @@ def GetNeighbourTraj(neighbour_trajectory, time_stamp, number_of_steps,
         next_sim_time_ceil = time_stamp + math.ceil(
             (i + 1) * timestep / TIMESTEP)
         next_sim_time_floor = time_stamp + math.floor(
-            (i + 1) * time_stamp / TIMESTEP)
+            (i + 1) * timestep / TIMESTEP)
         if next_sim_time_floor >= neighbour_trajectory.shape[1] - 1:
             pre_neighbour_traj = np.hstack(
                 (pre_neighbour_traj, neighbour_trajectory[:,
                                                           -1].reshape(-1, 1)))
         else:
-            ratio = ((i + 1) * timestep -
-                     (next_sim_time_floor - timestep) * TIMESTEP) / TIMESTEP
+            ratio = (((i + 1) * timestep + time_stamp * TIMESTEP) -
+                     next_sim_time_floor * TIMESTEP) / TIMESTEP
             tmp_pose = neighbour_trajectory[:, next_sim_time_floor] + (
                 neighbour_trajectory[:, next_sim_time_ceil] -
                 neighbour_trajectory[:, next_sim_time_floor]) * ratio
@@ -218,12 +223,11 @@ def NMPCFollower(start_pose,
 
         neighbour_traj = GetNeighbourTraj(neighbour_trajectory, i,
                                           HORIZON_LENGTH, NMPC_TIMESTEP)
+        all_neighbour_traj = neighbour_traj.reshape(1, -1)
 
-        vel, velocity_profile = ComputeVelocity(robot_state, neighbour_traj,
-                                                obstacles, neighbour_safe_dis,
-                                                avoid_obs_safe_dis, ref_path,
-                                                lower_bound, upper_bound,
-                                                z_limits)
+        vel, velocity_profile = ComputeVelocity(
+            robot_state, all_neighbour_traj, obstacles, neighbour_safe_dis,
+            avoid_obs_safe_dis, ref_path, lower_bound, upper_bound, z_limits)
         vel_list.append(vel.tolist() + [np.linalg.norm(vel)])
         if use_debug:
             print(f"vel:{vel}")
@@ -237,6 +241,8 @@ def NMPCFollower(start_pose,
                   dis_to_goal)
             break
 
+    robot_state_history = np.hstack(
+        (robot_state_history, goal_pose.reshape(-1, 1)))
     robot_state_history = np.hstack(
         (robot_state_history, goal_pose.reshape(-1, 1)))
 

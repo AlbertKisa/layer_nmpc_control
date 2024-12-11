@@ -39,7 +39,7 @@ P_l_goal = np.array([5.0, 5.0, 1.3])
 z_limits = np.array([0.4, 1.8])
 
 # 生成金字塔的向量
-size = 0.2
+size = 0.25
 vertices = GeneratePyramid(P_l_start, size)
 
 # 设置leader初始位置
@@ -82,9 +82,8 @@ time_step_data.append(["{:3f}".format(time.time() - time_start), step])
 # 計算Follower1的轨迹
 print(f"P_f1_start:{P_f1_start} P_f1_goal:{P_l_goal + d1}")
 time_start = time.time()
-P_f1_traj, step, vel, dis_to_goal = NMPCFollower(P_f1_start,
-                                                 P_l_goal + d1, P_l_traj, d1,
-                                                 np.empty((3, 0)),
+P_f1_traj, step, vel, dis_to_goal = NMPCFollower(P_f1_start, P_l_goal + d1,
+                                                 P_l_traj, d1, P_l_traj,
                                                  obstacles_new, NEIGHBOUR_SAFE,
                                                  OBS_SAFE, z_limits)
 time_step_data.append(["{:3f}".format(time.time() - time_start), step])
@@ -101,9 +100,8 @@ time_step_data.append(["{:3f}".format(time.time() - time_start), step])
 # 計算Follower3的轨迹
 print(f"P_f3_start:{P_f3_start} P_f3_goal:{P_l_goal + d3}")
 time_start = time.time()
-P_f3_traj, step, vel, dis_to_goal = NMPCFollower(P_f3_start,
-                                                 P_l_goal + d3, P_l_traj, d3,
-                                                 np.empty((3, 0)),
+P_f3_traj, step, vel, dis_to_goal = NMPCFollower(P_f3_start, P_l_goal + d3,
+                                                 P_l_traj, d3, P_f2_traj,
                                                  obstacles_new, NEIGHBOUR_SAFE,
                                                  OBS_SAFE, z_limits)
 time_step_data.append(["{:3f}".format(time.time() - time_start), step])
