@@ -15,10 +15,10 @@ kappa = 1.
 VMAX = 4
 
 # weight
-tracking_weight = 1.0
-collsion_weight = 1.3
+tracking_weight = 1.2
+collsion_weight = 0.8
 over_height_weight = 1.0
-input_change_weight = 2.0
+input_change_weight = 10.0
 
 # nmpc parameter
 HORIZON_LENGTH = int(8)
@@ -236,7 +236,7 @@ def NMPCFollower(start_pose,
 
         robot_state_history = np.hstack(
             (robot_state_history, robot_state.reshape(-1, 1)))
-        if dis_to_goal < 0.05:
+        if dis_to_goal < 0.03:
             print("final_step:", final_step, "final distance to goal:",
                   dis_to_goal)
             break

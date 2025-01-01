@@ -13,9 +13,9 @@ kappa = 1.0
 
 # weight
 tracking_weight = 1.0
-collsion_weight = 1.3
+collsion_weight = 0.8
 over_height_weight = 1.0
-input_change_weight = 2.0
+input_change_weight = 10.0
 
 # ego motion parameter
 VMAX = 1.0
@@ -170,7 +170,7 @@ def NMPCLeader(start_pose, goal_pose, obstacles, static_safe_dis, z_limits):
 
         robot_state_history = np.hstack(
             (robot_state_history, robot_state.reshape(-1, 1)))
-        if dis_to_goal < 0.05:
+        if dis_to_goal < 0.03:
             print("final_step:", final_step, "final distance to goal:",
                   dis_to_goal)
             break
@@ -209,10 +209,10 @@ def set_axes_equal(ax):
 
 if __name__ == "__main__":
     start_pose = np.array([0, 0, 1.3])
-    goal_pose = np.array([5.0, 5.0, 1.3])
-    obstacles = np.array([[1.8, 1.8, 1.3], [3.7, 3.7, 1.3]])
+    goal_pose = np.array([2.0, 2.0, 1.3])
+    obstacles = np.array([[0.8, 0.8, 1.3], [1.2, 1.2, 1.3]])
     z_limits = np.array([0.4, 1.8])
-    obs_rad = 0.2
+    obs_rad = 0.1
     path, final_step, val, dis = NMPCLeader(start_pose, goal_pose, obstacles,
                                             obs_rad, z_limits)
 

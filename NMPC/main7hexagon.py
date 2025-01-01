@@ -34,16 +34,16 @@ vel_list = []
 dis_to_goal_list = []
 
 # safe parameter
-NEIGHBOUR_SAFE = 0.1
-OBS_SAFE = 0.2
+NEIGHBOUR_SAFE = 0.08
+OBS_SAFE = 0.1
 
 # 設定Leader初始位置和目標位置
 P_l_start = np.array([0, 0, 1.3])
-P_l_goal = np.array([5.0, 5.0, 1.3])
+P_l_goal = np.array([2.0, 2.0, 1.3])
 z_limits = np.array([0.4, 1.8])
 
 # 生成正六边形的向量
-radius = 0.25
+radius = 0.10
 x, y = GenerateHexagonVertices(radius)
 
 # 设置leader初始位置
@@ -65,12 +65,12 @@ d4 = np.array([x[3], y[3], 0.0])
 d5 = np.array([x[4], y[4], 0.0])
 d6 = np.array([x[5], y[5], 0.0])
 
-obs1_x = random.uniform(1.5, 2.0)
+obs1_x = random.uniform(0.8, 1.0)
 obs1_y = obs1_x
-obs1_z = 1.2
-obs2_x = random.uniform(3.5, 4.0)
+obs1_z = 1.3
+obs2_x = random.uniform(1.1, 1.3)
 obs2_y = obs2_x
-obs2_z = 1.5
+obs2_z = 1.3
 # 设置球形障碍物的中心和半径, 下面这是两个障碍物的参数，前三位是x,y,z,第四位是r
 obstacles = [[obs1_x, obs1_y, obs1_z, OBS_SAFE],
              [obs2_x, obs2_y, obs2_z, OBS_SAFE]]
@@ -344,8 +344,8 @@ z1_a = obstacles[1][2] + obstacles[1][-1] * np.outer(np.ones(
 # 設置動畫
 fig = plt.figure(figsize=(10, 8))
 ax = fig.add_subplot(111, projection='3d')
-ax.set_xlim([-1, 7])
-ax.set_ylim([-1, 7])
+ax.set_xlim([-1, 3])
+ax.set_ylim([-1, 3])
 ax.set_zlim([-1.0, 3.0])
 
 # 绘制障碍物
