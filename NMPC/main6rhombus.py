@@ -35,7 +35,7 @@ dis_to_goal_list = []
 
 # safe parameter
 NEIGHBOUR_SAFE = 0.1
-OBS_SAFE = 0.1
+OBS_SAFE = 0.2
 
 # 設定Leader初始位置和目標位置
 P_l_start = np.array([0, 0, 1.3])

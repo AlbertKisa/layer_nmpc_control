@@ -14,8 +14,8 @@ kappa = 1.0
 # weight
 tracking_weight = 1.0
 collsion_weight = 0.8
-over_height_weight = 1.0
-input_change_weight = 10.0
+over_height_weight = 0.3
+input_change_weight = 2.5
 
 # ego motion parameter
 VMAX = 1.0
@@ -212,7 +212,7 @@ if __name__ == "__main__":
     goal_pose = np.array([2.0, 2.0, 1.3])
     obstacles = np.array([[0.8, 0.8, 1.3], [1.2, 1.2, 1.3]])
     z_limits = np.array([0.4, 1.8])
-    obs_rad = 0.1
+    obs_rad = 0.2
     path, final_step, val, dis = NMPCLeader(start_pose, goal_pose, obstacles,
                                             obs_rad, z_limits)
 

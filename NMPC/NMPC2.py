@@ -16,9 +16,9 @@ VMAX = 4
 
 # weight
 tracking_weight = 1.2
-collsion_weight = 0.8
-over_height_weight = 1.0
-input_change_weight = 10.0
+collsion_weight = 0.9
+over_height_weight = 0.3
+input_change_weight = 2.5
 
 # nmpc parameter
 HORIZON_LENGTH = int(8)
