@@ -63,12 +63,12 @@ d3 = vertices[5] - vertices[4]
 d4 = vertices[2] - vertices[4]
 d5 = vertices[1] - vertices[4]
 
-obs1_x = random.uniform(0.8, 1.0)
-obs1_y = obs1_x
-obs1_z = 1.3
-obs2_x = random.uniform(1.1, 1.3)
-obs2_y = obs2_x
-obs2_z = 1.3
+obs1_x = 0.4
+obs1_y = 0.6
+obs1_z = 1.0
+obs2_x = 1.2
+obs2_y = 0.8
+obs2_z = 1.0
 # 设置球形障碍物的中心和半径, 下面这是两个障碍物的参数，前三位是x,y,z,第四位是r
 obstacles = [[obs1_x, obs1_y, obs1_z, OBS_SAFE],
              [obs2_x, obs2_y, obs2_z, OBS_SAFE]]
