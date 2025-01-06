@@ -170,7 +170,7 @@ def NMPCLeader(start_pose, goal_pose, obstacles, static_safe_dis, z_limits):
 
         robot_state_history = np.hstack(
             (robot_state_history, robot_state.reshape(-1, 1)))
-        if dis_to_goal < 0.03:
+        if dis_to_goal < 0.05:
             print("final_step:", final_step, "final distance to goal:",
                   dis_to_goal)
             break
@@ -210,7 +210,7 @@ def set_axes_equal(ax):
 if __name__ == "__main__":
     start_pose = np.array([0, 0, 1.0])
     goal_pose = np.array([2.0, 2.0, 1.0])
-    obstacles = np.array([[0.8, 1.0, 1.0], [1.5, 1.0, 1.0]])
+    obstacles = np.array([[0.4, 0.6, 1.0], [1.2, 0.8, 1.0]])
     z_limits = np.array([0.1, 1.7])
     obs_rad = 0.3
     path, final_step, val, dis = NMPCLeader(start_pose, goal_pose, obstacles,
