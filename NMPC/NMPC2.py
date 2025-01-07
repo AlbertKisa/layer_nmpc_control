@@ -8,17 +8,17 @@ TIMESTEP = 0.5
 NUMBER_OF_TIMESTEPS = int(SIM_TIME / TIMESTEP)
 
 # collision cost
-Qc = 1.
-kappa = 1.
+Qc = 1.0
+kappa = 1.0
 
 # ego motion parameter
-VMAX = 4
+VMAX = 1
 
 # weight
-tracking_weight = 1.2
-collsion_weight = 0.9
+tracking_weight = 1.0
+collsion_weight = 0.5
 over_height_weight = 0.3
-input_change_weight = 2.5
+input_change_weight = 10.0
 
 # nmpc parameter
 HORIZON_LENGTH = int(8)
@@ -211,12 +211,9 @@ def NMPCFollower(start_pose,
         dis_to_goal = np.linalg.norm(goal_pose - robot_state)
         lower_bound = lower_bound_default
         upper_bound = upper_bound_default
-        if dis_to_goal >= 1.0 and dis_to_goal < 10.0:
-            upper_bound = [0.5] * HORIZON_LENGTH * 3
-            lower_bound = [-0.5] * HORIZON_LENGTH * 3
-        if dis_to_goal < 1.0:
-            upper_bound = [0.1] * HORIZON_LENGTH * 3
-            lower_bound = [-0.1] * HORIZON_LENGTH * 3
+        if dis_to_goal < 10.0:
+            upper_bound = [0.2] * HORIZON_LENGTH * 3
+            lower_bound = [-0.2] * HORIZON_LENGTH * 3
         final_step = i
         ref_path = ComputeRefPath(robot_state, goal_pose, ref_trajectory, i,
                                   HORIZON_LENGTH, NMPC_TIMESTEP)

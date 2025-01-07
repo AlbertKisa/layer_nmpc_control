@@ -35,16 +35,16 @@ dis_to_goal_list = []
 
 # safe parameter
 NEIGHBOUR_SAFE = 0.1
-OBS_SAFE = 0.3
+OBS_SAFE = 0.2
 
 # 設定Leader初始位置和目標位置
 P_l_start = np.array([0, 0, 1.0])
-P_l_goal = np.array([2.0, 2.0, 1.0])
-z_limits = np.array([0.1, 1.5])
+P_l_goal = np.array([2.0, 0.0, 1.0])
+z_limits = np.array([0.4, 2.0])
 
 # 生成三角形的向量
-side_len = 0.8
-heading_angle = 195
+side_len = 0.6
+heading_angle = 150.0
 all_points = GenerateTrianglePoints(P_l_start[0:2], heading_angle, side_len)
 
 # 定義向量以形成編隊
@@ -61,11 +61,11 @@ P_f3_start = d3 + P_l_start
 P_f4_start = d4 + P_l_start
 P_f5_start = d5 + P_l_start
 
-obs1_x = 0.4
-obs1_y = 0.6
+obs1_x = 0.5
+obs1_y = 0.0
 obs1_z = 1.0
-obs2_x = 1.2
-obs2_y = 0.8
+obs2_x = 1.1
+obs2_y = -0.3
 obs2_z = 1.0
 # 设置球形障碍物的中心和半径, 下面这是两个障碍物的参数，前三位是x,y,z,第四位是r
 obstacles = [[obs1_x, obs1_y, obs1_z, OBS_SAFE],
@@ -312,9 +312,9 @@ z1_a = obstacles[1][2] + obstacles[1][-1] * np.outer(np.ones(
 # 設置動畫
 fig = plt.figure(figsize=(10, 8))
 ax = fig.add_subplot(111, projection='3d')
-ax.set_xlim([-1, 3])
-ax.set_ylim([-1, 3])
-ax.set_zlim([-1.0, 3.0])
+ax.set_xlim([-1, 2])
+ax.set_ylim([-1.5, 1.5])
+ax.set_zlim([-1.0, 2.0])
 
 # 绘制障碍物
 ax.plot_surface(x0_a, y0_a, z0_a, color='b', alpha=0.6)  # 使用半透明的蓝色

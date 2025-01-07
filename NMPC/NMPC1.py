@@ -12,10 +12,10 @@ Qc = 1.0
 kappa = 1.0
 
 # weight
-tracking_weight = 0.9
-collsion_weight = 0.9
+tracking_weight = 1.0
+collsion_weight = 0.35
 over_height_weight = 0.3
-input_change_weight = 2.5
+input_change_weight = 10.0
 
 # ego motion parameter
 VMAX = 1.0
@@ -152,12 +152,9 @@ def NMPCLeader(start_pose, goal_pose, obstacles, static_safe_dis, z_limits):
         dis_to_goal = np.linalg.norm(goal_pose - robot_state)
         upper_bound = upper_bound_default
         lower_bound = lower_bound_default
-        if dis_to_goal >= 1.0 and dis_to_goal < 10.0:
-            upper_bound = [0.5] * HORIZON_LENGTH * 3
-            lower_bound = [-0.5] * HORIZON_LENGTH * 3
-        if dis_to_goal < 1.0:
-            upper_bound = [0.1] * HORIZON_LENGTH * 3
-            lower_bound = [-0.1] * HORIZON_LENGTH * 3
+        if dis_to_goal < 10.0:
+            upper_bound = [0.2] * HORIZON_LENGTH * 3
+            lower_bound = [-0.2] * HORIZON_LENGTH * 3
         final_step = i
         ref_path = ComputeRefPath(robot_state, p_desired, HORIZON_LENGTH,
                                   NMPC_TIMESTEP)
@@ -209,10 +206,10 @@ def set_axes_equal(ax):
 
 if __name__ == "__main__":
     start_pose = np.array([0, 0, 1.0])
-    goal_pose = np.array([2.0, 2.0, 1.0])
-    obstacles = np.array([[0.4, 0.6, 1.0], [1.2, 0.8, 1.0]])
-    z_limits = np.array([0.1, 1.7])
-    obs_rad = 0.3
+    goal_pose = np.array([2.0, 0.0, 1.0])
+    obstacles = np.array([[0.5, 0.0, 1.0], [1.3, -0.3, 1.0]])
+    z_limits = np.array([0.4, 2.0])
+    obs_rad = 0.2
     path, final_step, val, dis = NMPCLeader(start_pose, goal_pose, obstacles,
                                             obs_rad, z_limits)
 
