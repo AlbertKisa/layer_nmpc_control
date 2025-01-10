@@ -12,7 +12,7 @@ def CollisionCost(p_robot, p_obs, safe_dis, Qc, kappa):
 
 # Define parameters
 p_robot = np.array([0, 0])
-safe_dis = 0.2
+safe_dis = 0.1
 Qc = 1.0
 kappa = 1.0
 
