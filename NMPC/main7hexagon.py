@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from scipy.interpolate import interp1d
 from utils import GenerateHexagonVertices
+from utils import GenerateRandomFloats
 import time
 import pandas as pd
 
@@ -37,8 +38,11 @@ dis_to_goal_list = []
 NEIGHBOUR_SAFE = 0.1
 OBS_SAFE = 0.2
 
+# 设置初始位置y的随机值
+y_random = GenerateRandomFloats(7, -0.2, 0.2)
+
 # 設定Leader初始位置和目標位置
-P_l_start = np.array([0, 0, 1.0])
+P_l_start = np.array([0, y_random[6], 1.0])
 P_l_goal = np.array([2.0, 0.0, 1.0])
 z_limits = np.array([0.4, 2.0])
 
@@ -46,16 +50,14 @@ z_limits = np.array([0.4, 2.0])
 radius = 0.3
 x, y = GenerateHexagonVertices(radius)
 
-# 设置leader初始位置
-l_random = random.uniform
 
 # 隨機設置Follower的初始位置
-P_f1_start = np.array([x[0], y[0], 0]) + P_l_start
-P_f2_start = np.array([x[1], y[1], 0]) + P_l_start
-P_f3_start = np.array([x[2], y[2], 0]) + P_l_start
-P_f4_start = np.array([x[3], y[3], 0]) + P_l_start
-P_f5_start = np.array([x[4], y[4], 0]) + P_l_start
-P_f6_start = np.array([x[5], y[5], 0]) + P_l_start
+P_f1_start = np.array([x[0], y[0], 0]) + P_l_start + np.array([0, y_random[0], 0])
+P_f2_start = np.array([x[1], y[1], 0]) + P_l_start + np.array([0, y_random[1], 0])
+P_f3_start = np.array([x[2], y[2], 0]) + P_l_start + np.array([0, y_random[2], 0])
+P_f4_start = np.array([x[3], y[3], 0]) + P_l_start + np.array([0, y_random[3], 0])
+P_f5_start = np.array([x[4], y[4], 0]) + P_l_start + np.array([0, y_random[4], 0])
+P_f6_start = np.array([x[5], y[5], 0]) + P_l_start + np.array([0, y_random[5], 0])
 
 # 定義向量以形成編隊
 d1 = np.array([x[0], y[0], 0.0])

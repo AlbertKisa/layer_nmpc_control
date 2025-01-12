@@ -178,6 +178,10 @@ def plot_pyramid(vertices):
     plt.show()
 
 
+def GenerateRandomFloats(count, start, end):
+    return np.random.uniform(start, end, count).tolist()
+
+
 if __name__ == "__main__":
     p = (1, 2)
     a = (0, 0)

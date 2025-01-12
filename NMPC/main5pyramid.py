@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from scipy.interpolate import interp1d
 from utils import GeneratePyramid
+from utils import GenerateRandomFloats
 import time
 import pandas as pd
 
@@ -37,8 +38,11 @@ dis_to_goal_list = []
 NEIGHBOUR_SAFE = 0.1
 OBS_SAFE = 0.2
 
+# 设置初始位置y的随机值
+y_random = GenerateRandomFloats(6, -0.2, 0.2)
+
 # 設定Leader初始位置和目標位置
-P_l_start = np.array([0, 0, 1.0])
+P_l_start = np.array([0, y_random[4], 1.0])
 P_l_goal = np.array([2.0, 0.0, 1.0])
 z_limits = np.array([0.4, 2.0])
 
@@ -50,10 +54,10 @@ vertices = GeneratePyramid(P_l_start, size)
 l_random = random.uniform
 
 # 隨機設置Follower的初始位置
-P_f1_start = vertices[1]
-P_f2_start = vertices[2]
-P_f3_start = vertices[3]
-P_f4_start = vertices[4]
+P_f1_start = vertices[1] + np.array([0, y_random[0], 0])
+P_f2_start = vertices[2] + np.array([0, y_random[1], 0])
+P_f3_start = vertices[3] + np.array([0, y_random[2], 0])
+P_f4_start = vertices[4] + np.array([0, y_random[3], 0])
 
 # 定義向量以形成編隊
 d1 = vertices[1] - vertices[0]

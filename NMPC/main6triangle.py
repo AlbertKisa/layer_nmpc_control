@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from scipy.interpolate import interp1d
 from utils import GenerateTrianglePoints
+from utils import GenerateRandomFloats
 import time
 import pandas as pd
 
@@ -37,8 +38,12 @@ dis_to_goal_list = []
 NEIGHBOUR_SAFE = 0.1
 OBS_SAFE = 0.2
 
+# 设置初始位置y的随机值
+y_random = GenerateRandomFloats(6, -0.2, 0.2)
+
+
 # 設定Leader初始位置和目標位置
-P_l_start = np.array([0, 0, 1.0])
+P_l_start = np.array([0, y_random[5], 1.0])
 P_l_goal = np.array([2.0, 0.0, 1.0])
 z_limits = np.array([0.4, 2.0])
 
@@ -55,11 +60,11 @@ d4 = all_points[4] - all_points[0]
 d5 = all_points[5] - all_points[0]
 
 # 隨機設置Follower的初始位置
-P_f1_start = d1 + P_l_start
-P_f2_start = d2 + P_l_start
-P_f3_start = d3 + P_l_start
-P_f4_start = d4 + P_l_start
-P_f5_start = d5 + P_l_start
+P_f1_start = d1 + P_l_start + np.array([0, y_random[0], 0])
+P_f2_start = d2 + P_l_start + np.array([0, y_random[1], 0])
+P_f3_start = d3 + P_l_start + np.array([0, y_random[2], 0])
+P_f4_start = d4 + P_l_start + np.array([0, y_random[3], 0])
+P_f5_start = d5 + P_l_start + np.array([0, y_random[4], 0])
 
 obs1_x = 0.5
 obs1_y = 0.0

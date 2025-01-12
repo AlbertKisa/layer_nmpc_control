@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from scipy.interpolate import interp1d
 from utils import GenerateRhombusFromFront
+from utils import GenerateRandomFloats
 import time
 import pandas as pd
 
@@ -37,8 +38,11 @@ dis_to_goal_list = []
 NEIGHBOUR_SAFE = 0.15
 OBS_SAFE = 0.2
 
+# 设置初始位置y的随机值
+y_random = GenerateRandomFloats(6, -0.2, 0.2)
+
 # 設定Leader初始位置和目標位置
-P_l_start = np.array([0, 0, 1.0])
+P_l_start = np.array([0, y_random[5], 1.0])
 P_l_goal = np.array([2.0, 0.0, 1.0])
 z_limits = np.array([0.1, 2.0])
 
@@ -46,15 +50,12 @@ z_limits = np.array([0.1, 2.0])
 size = NEIGHBOUR_SAFE * 2.0
 vertices = GenerateRhombusFromFront(P_l_start, size)
 
-# 设置leader初始位置
-l_random = random.uniform
-
 # 隨機設置Follower的初始位置
-P_f1_start = vertices[0]
-P_f2_start = vertices[3]
-P_f3_start = vertices[5]
-P_f4_start = vertices[2]
-P_f5_start = vertices[1]
+P_f1_start = vertices[0] + np.array([0, y_random[0], 0])
+P_f2_start = vertices[3] + np.array([0, y_random[1], 0])
+P_f3_start = vertices[5] + np.array([0, y_random[2], 0])
+P_f4_start = vertices[2] + np.array([0, y_random[3], 0])
+P_f5_start = vertices[1] + np.array([0, y_random[4], 0])
 
 # 定義向量以形成編隊
 d1 = vertices[0] - vertices[4]
